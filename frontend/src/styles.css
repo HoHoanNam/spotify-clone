@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+/* Spotify-like design tokens, usable as Tailwind utilities (bg-base, text-subdued, bg-accent, ...) */
+@theme {
+  --color-base: #121212;
+  --color-elevated: #1f1f1f;
+  --color-highlight: #2a2a2a;
+  --color-subdued: #b3b3b3;
+  --color-accent: #1db954;
+  --color-accent-hover: #1ed760;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  @apply bg-black text-white antialiased;
+}
