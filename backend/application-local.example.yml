@@ -1,0 +1,10 @@
+# Copy to application-local.yml (gitignored) and adjust for your machine.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/spotify_clone
+    username: postgres
+    password: change-me
+app:
+  admin:
+    email: admin@spotify.local
+    password: change-me-please

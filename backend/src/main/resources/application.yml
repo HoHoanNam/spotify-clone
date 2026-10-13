@@ -41,6 +41,9 @@ app:
     # Base64-encoded HMAC key (>= 256 bit). MUST be overridden outside dev.
     secret: ${JWT_SECRET:ZGV2LW9ubHktc2VjcmV0LWNoYW5nZS1tZS1wbGVhc2UtYXQtbGVhc3QtMzItYnl0ZXM=}
     access-token-ttl: ${JWT_ACCESS_TTL:24h}
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
 
 springdoc:
   api-docs:
