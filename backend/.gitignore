@@ -33,5 +33,5 @@ build/
 .vscode/
 
 ### App ###
-storage/
+/storage/
 application-local.yml
