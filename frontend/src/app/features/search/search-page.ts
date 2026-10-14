@@ -13,7 +13,7 @@ import { PageStatus } from '../../shared/page-status';
 import { PlayButton } from '../../shared/play-button';
 import { TrackList } from '../../shared/track-list';
 
-/** /search?q=… — the query comes from the search box in the top bar. */
+/** /search?q=â€¦ â€” the query comes from the search box in the top bar. */
 @Component({
   selector: 'app-search-page',
   imports: [RouterLink, ArtistLinks, CoverImage, MediaCard, PageStatus, PlayButton, TrackList],
@@ -47,4 +47,4 @@ export class SearchPage {
   });
 }
 
-const EMPTY: SearchResult = { tracks: [], albums: [], artists: [] };
+const EMPTY: SearchResult = { tracks: [], albums: [], artists: [], playlists: [] };
