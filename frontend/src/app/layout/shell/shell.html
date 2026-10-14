@@ -1,0 +1,26 @@
+<div class="grid h-dvh grid-rows-[auto_1fr_auto] bg-black">
+  <app-topbar />
+
+  <div class="grid min-h-0 gap-2 px-2 md:grid-cols-[280px_1fr] xl:grid-cols-[340px_1fr]">
+    <app-sidebar class="hidden min-h-0 md:block" />
+    <main #main class="relative min-h-0 overflow-y-auto rounded-lg bg-base">
+      <router-outlet />
+    </main>
+  </div>
+
+  <app-player-bar />
+</div>
+
+<div class="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex flex-col items-center gap-2" aria-live="polite">
+  @for (toast of toasts.toasts(); track toast.id) {
+    <div
+      class="pointer-events-auto flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium shadow-[0_16px_24px_rgb(0_0_0/0.3)]"
+      [class]="toast.kind === 'error' ? 'bg-[#e91429]' : 'bg-[#3d91f4]'"
+    >
+      {{ toast.message }}
+      <button type="button" aria-label="Dismiss" class="opacity-80 hover:opacity-100" (click)="toasts.dismiss(toast.id)">
+        <app-icon name="close" [size]="16" />
+      </button>
+    </div>
+  }
+</div>

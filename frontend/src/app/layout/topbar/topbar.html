@@ -1,0 +1,81 @@
+<header class="flex h-16 items-center gap-2 px-2">
+  <a routerLink="/" class="flex size-12 shrink-0 items-center justify-center text-white" aria-label="Home">
+    <app-icon name="logo" [size]="32" />
+  </a>
+
+  <div class="mx-auto flex w-full max-w-[540px] items-center gap-2">
+    <a
+      routerLink="/"
+      routerLinkActive="text-white"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="flex size-12 shrink-0 items-center justify-center rounded-full bg-elevated text-subdued transition-transform hover:scale-105 hover:text-white"
+      aria-label="Home"
+    >
+      <app-icon name="home" />
+    </a>
+    <label
+      class="group flex h-12 flex-1 items-center gap-3 rounded-full bg-elevated px-3 text-subdued ring-white transition-colors focus-within:ring-2 hover:bg-highlight hover:ring-1 hover:ring-highlight"
+    >
+      <app-icon name="search" class="group-focus-within:text-white" />
+      <input
+        #searchInput
+        type="search"
+        [formControl]="query"
+        placeholder="What do you want to play?"
+        aria-label="Search"
+        class="h-full flex-1 bg-transparent text-white outline-none placeholder:text-subdued"
+        (focus)="openSearch()"
+      />
+    </label>
+  </div>
+
+  <div class="relative flex shrink-0 items-center gap-2">
+    @if (auth.isAdmin()) {
+      <a routerLink="/admin" routerLinkActive="border-white" class="btn-outline hidden sm:inline-flex">
+        <app-icon name="upload" [size]="16" /> Admin
+      </a>
+    }
+    <button
+      type="button"
+      class="flex size-12 items-center justify-center rounded-full bg-elevated transition-transform hover:scale-105"
+      aria-label="Account"
+      [attr.aria-expanded]="menuOpen()"
+      (click)="menuOpen.set(!menuOpen()); $event.stopPropagation()"
+    >
+      <span class="flex size-8 items-center justify-center rounded-full bg-[#f573a0] font-bold text-black">
+        {{ initial() }}
+      </span>
+    </button>
+
+    @if (menuOpen()) {
+      <div
+        role="menu"
+        class="absolute top-14 right-0 z-30 w-60 rounded-md bg-highlight p-1 text-sm shadow-[0_16px_24px_rgb(0_0_0/0.3)]"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="border-b border-white/10 px-3 py-3">
+          <p class="truncate font-semibold">{{ auth.user()?.username }}</p>
+          <p class="truncate text-subdued">{{ auth.user()?.email }}</p>
+        </div>
+        @if (auth.isAdmin()) {
+          <a
+            role="menuitem"
+            routerLink="/admin"
+            class="flex items-center gap-3 rounded-sm px-3 py-3 hover:bg-white/10"
+            (click)="menuOpen.set(false)"
+          >
+            <app-icon name="upload" [size]="16" /> Admin
+          </a>
+        }
+        <button
+          role="menuitem"
+          type="button"
+          class="flex w-full items-center gap-3 rounded-sm px-3 py-3 hover:bg-white/10"
+          (click)="logout()"
+        >
+          <app-icon name="logout" [size]="16" /> Log out
+        </button>
+      </div>
+    }
+  </div>
+</header>

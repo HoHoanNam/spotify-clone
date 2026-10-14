@@ -1,25 +1,15 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { Icon } from '../../shared/icon';
 
+/**
+ * "Your Library" panel. Playlists and Liked Songs arrive with the Playlist/Like backend (roadmap step 4);
+ * until then it shows Spotify's empty-state prompts.
+ */
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive],
-  template: `
-    <aside class="flex min-h-0 flex-col gap-2">
-      <nav class="rounded-lg bg-base p-4">
-        <a
-          routerLink="/"
-          routerLinkActive="text-white"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="block py-2 font-semibold text-subdued hover:text-white"
-          >Home</a
-        >
-        <span class="block py-2 font-semibold text-subdued">Search</span>
-      </nav>
-      <section class="flex-1 rounded-lg bg-base p-4">
-        <h2 class="font-semibold text-subdued">Your Library</h2>
-      </section>
-    </aside>
-  `,
+  imports: [RouterLink, Icon],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './sidebar.html',
 })
 export class Sidebar {}
