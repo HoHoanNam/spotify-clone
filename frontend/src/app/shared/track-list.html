@@ -1,0 +1,61 @@
+@if (showHeader()) {
+  <div
+    class="mb-2 grid items-center gap-4 border-b border-white/10 px-4 py-2 text-sm text-subdued"
+    [style.grid-template-columns]="columns()"
+  >
+    <span class="text-right">#</span>
+    <span>Title</span>
+    @if (showAlbum()) {
+      <span class="hidden md:block">Album</span>
+    }
+    <span class="flex justify-end pr-2" aria-label="Duration"><app-icon name="clock" [size]="16" /></span>
+  </div>
+}
+
+<ol role="list">
+  @for (track of tracks(); track track.id; let i = $index) {
+    @let current = player.isCurrent(track.id);
+    @let playing = current && player.isPlaying();
+    <li
+      class="group grid h-14 cursor-default items-center gap-4 rounded px-4 text-sm text-subdued hover:bg-white/10"
+      [style.grid-template-columns]="columns()"
+      (dblclick)="play(i)"
+    >
+      <span class="flex justify-end text-base tabular-nums">
+        @if (playing) {
+          <span class="eq group-hover:hidden" aria-label="Now playing"><span></span><span></span><span></span></span>
+        } @else {
+          <span class="group-hover:hidden" [class.text-accent]="current">{{ number(track, i) }}</span>
+        }
+        <button
+          type="button"
+          class="hidden text-white group-hover:inline-flex"
+          [attr.aria-label]="(playing ? 'Pause ' : 'Play ') + track.title"
+          (click)="playing ? player.toggle() : play(i)"
+        >
+          <app-icon [name]="playing ? 'pause' : 'play'" [size]="16" />
+        </button>
+      </span>
+
+      <div class="flex min-w-0 items-center gap-3">
+        @if (showCover()) {
+          <app-cover-image class="size-10 shrink-0 rounded" [src]="track.coverUrl" [alt]="track.title" [iconSize]="18" />
+        }
+        <div class="min-w-0">
+          <p class="truncate text-base" [class.text-white]="!current" [class.text-accent]="current">{{ track.title }}</p>
+          <p class="truncate"><app-artist-links [artists]="track.artists" /></p>
+        </div>
+      </div>
+
+      @if (showAlbum()) {
+        <span class="hidden truncate md:block">
+          @if (track.album; as album) {
+            <a [routerLink]="['/album', album.id]" class="hover:text-white hover:underline">{{ album.title }}</a>
+          }
+        </span>
+      }
+
+      <span class="pr-2 text-right tabular-nums">{{ track.durationSec | duration }}</span>
+    </li>
+  }
+</ol>
