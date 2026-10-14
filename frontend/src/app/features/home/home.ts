@@ -29,9 +29,9 @@ export class Home {
   private readonly state = toSignal(
     loadable(
       forkJoin({
-        tracks: this.catalog.tracks(0, 8).pipe(map((p) => p.content)),
-        albums: this.catalog.albums(0, 12).pipe(map((p) => p.content)),
-        artists: this.catalog.artists(0, 12).pipe(map((p) => p.content)),
+        tracks: this.catalog.tracks({ size: 8 }).pipe(map((p) => p.content)),
+        albums: this.catalog.albums({ size: 12 }).pipe(map((p) => p.content)),
+        artists: this.catalog.artists({ size: 12 }).pipe(map((p) => p.content)),
       }),
     ),
     { initialValue: LOADING },
@@ -41,7 +41,7 @@ export class Home {
 
   protected subtitle(album: AlbumSummary): string {
     const year = album.releaseDate?.slice(0, 4);
-    return year ? `${year} • ${album.artist.name}` : album.artist.name;
+    return year ? `${year} â€¢ ${album.artist.name}` : album.artist.name;
   }
 
   protected playTile(tracks: Track[], index: number): void {

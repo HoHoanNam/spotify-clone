@@ -35,7 +35,7 @@ export class AdminArtists {
 
   private readonly reload = signal(0);
   private readonly state = toSignal(
-    toObservable(this.reload).pipe(switchMap(() => loadable(this.catalog.artists(0, 50).pipe(map((p) => p.content))))),
+    toObservable(this.reload).pipe(switchMap(() => loadable(this.catalog.artists({ size: 50 }).pipe(map((p) => p.content))))),
     { initialValue: LOADING },
   );
   protected readonly artists = computed(() => dataOf(this.state()));

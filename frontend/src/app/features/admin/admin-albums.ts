@@ -40,8 +40,8 @@ export class AdminAlbums {
       switchMap(() =>
         loadable(
           forkJoin({
-            albums: this.catalog.albums(0, 50).pipe(map((p) => p.content)),
-            artists: this.catalog.artists(0, 50).pipe(map((p) => p.content)),
+            albums: this.catalog.albums({ size: 50 }).pipe(map((p) => p.content)),
+            artists: this.catalog.artists({ size: 50 }).pipe(map((p) => p.content)),
           }),
         ),
       ),
