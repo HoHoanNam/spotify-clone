@@ -1,0 +1,12 @@
+<button
+  type="button"
+  class="btn-icon transition-transform hover:scale-110"
+  [class.text-accent]="liked()"
+  [attr.aria-pressed]="liked()"
+  [attr.aria-label]="liked() ? 'Remove from Liked Songs' : 'Save to Liked Songs'"
+  [title]="liked() ? 'Remove from Liked Songs' : 'Save to Liked Songs'"
+  (click)="toggle($event)"
+  (dblclick)="$event.stopPropagation()"
+>
+  <app-icon [name]="liked() ? 'heartFilled' : 'heart'" [size]="size()" />
+</button>
