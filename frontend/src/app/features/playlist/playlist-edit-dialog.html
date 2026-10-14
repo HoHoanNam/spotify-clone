@@ -1,0 +1,68 @@
+<app-modal heading="Edit details" (closed)="closed.emit()">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="grid gap-4 sm:grid-cols-[180px_1fr]">
+      <!-- Photo: click to choose, like Spotify -->
+      <div class="group relative size-45 justify-self-center shadow-[0_4px_60px_rgb(0_0_0/0.5)]">
+        <app-playlist-cover class="size-full rounded" [images]="images()" [iconSize]="56" />
+        <label
+          class="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 rounded bg-black/70 text-sm font-bold opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+        >
+          <app-icon name="edit" [size]="40" />
+          Choose photo
+          <input #file type="file" accept=".jpg,.jpeg,.png,.webp" class="sr-only" (change)="pick(file)" />
+        </label>
+        @if (cover() || (playlist().hasCover && !removeCover())) {
+          <button
+            type="button"
+            class="absolute top-2 right-2 flex size-8 items-center justify-center rounded-full bg-black/70 text-subdued opacity-0 group-hover:opacity-100 hover:text-white focus-visible:opacity-100"
+            aria-label="Remove photo"
+            title="Remove photo"
+            (click)="dropCover()"
+          >
+            <app-icon name="trash" [size]="16" />
+          </button>
+        }
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <label class="block">
+          <span class="sr-only">Name</span>
+          <input
+            formControlName="name"
+            class="field bg-white/10"
+            placeholder="Add a name"
+            maxlength="100"
+            [class.invalid]="form.controls.name.invalid && form.controls.name.touched"
+          />
+        </label>
+        <label class="block flex-1">
+          <span class="sr-only">Description</span>
+          <textarea
+            formControlName="description"
+            class="field h-full min-h-28 resize-none bg-white/10"
+            placeholder="Add an optional description"
+            maxlength="300"
+          ></textarea>
+        </label>
+      </div>
+    </div>
+
+    <label class="mt-5 flex items-center gap-3 text-sm">
+      <input type="checkbox" formControlName="isPublic" class="size-4 accent-accent" />
+      <span>
+        <span class="font-bold">Public</span>
+        <span class="text-subdued"> — anyone can find it in search and on your profile</span>
+      </span>
+    </label>
+
+    @if (error(); as message) {
+      <p class="mt-4 text-sm text-danger">{{ message }}</p>
+    }
+
+    <div class="mt-6 flex justify-end">
+      <button type="submit" class="rounded-full bg-white px-8 py-3 font-bold text-black transition-transform hover:scale-[1.03] disabled:opacity-50" [disabled]="saving()">
+        Save
+      </button>
+    </div>
+  </form>
+</app-modal>
