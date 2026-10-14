@@ -1,14 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Icon } from '../../shared/icon';
+import { LibraryPanel } from '../library-panel/library-panel';
 
-/**
- * "Your Library" panel. Playlists and Liked Songs arrive with the Playlist/Like backend (roadmap step 4);
- * until then it shows Spotify's empty-state prompts.
- */
+/** Left column of the shell: "Your Library". */
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, Icon],
+  imports: [LibraryPanel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sidebar.html',
 })
