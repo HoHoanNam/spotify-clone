@@ -1,6 +1,24 @@
 <div class="grid gap-10 xl:grid-cols-[380px_1fr]">
-  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 self-start rounded-lg bg-elevated p-6" novalidate>
-    <h2 class="text-xl font-bold">New artist</h2>
+  <!-- Same spacing scale as the Tracks tab: gap-5 between fields · mb-2 label → control -->
+  <form
+    #formEl
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    class="flex flex-col gap-5 self-start rounded-lg bg-elevated p-6"
+    novalidate
+  >
+    <header>
+      <div class="flex min-h-8 items-center justify-between gap-4">
+        <h2 class="text-xl font-bold">{{ editing() ? 'Edit artist' : 'New artist' }}</h2>
+        @if (editing()) {
+          <button type="button" class="btn-outline" (click)="cancelEdit()">Cancel</button>
+        }
+      </div>
+      @if (editing(); as artist) {
+        <p class="mt-2 text-sm text-subdued">Editing “{{ artist.name }}”. Leave the image empty to keep the current one.</p>
+      }
+    </header>
+
     <label class="block">
       <span class="mb-2 block text-sm font-bold">Name</span>
       <input formControlName="name" class="field" [class.invalid]="invalid('name')" />
@@ -9,28 +27,80 @@
       <span class="mb-2 block text-sm font-bold">Bio <span class="font-normal text-subdued">(optional)</span></span>
       <textarea formControlName="bio" rows="4" class="field resize-y"></textarea>
     </label>
-    <app-file-field label="Image" accept=".jpg,.jpeg,.png,.webp" hint="JPG, PNG or WebP" [(file)]="image" />
 
-    @if (progress() !== null) {
-      <div class="h-1 overflow-hidden rounded-full bg-white/10"><div class="h-full bg-accent" [style.width.%]="progress()"></div></div>
-    }
-    <button type="submit" class="btn-primary w-full" [disabled]="progress() !== null">Create artist</button>
+    <div>
+      <app-file-field
+        [label]="editing() ? 'Replace image' : 'Image'"
+        accept=".jpg,.jpeg,.png,.webp"
+        [hint]="editing() ? 'Keep the current image' : 'JPG, PNG or WebP'"
+        [(file)]="image"
+      />
+      @if (editing()?.imageUrl && !image()) {
+        <label class="mt-2 flex items-center gap-2 text-sm text-subdued">
+          <input
+            type="checkbox"
+            class="size-4 accent-accent"
+            [checked]="removeImage()"
+            (change)="removeImage.set($any($event.target).checked)"
+          />
+          Remove the current image
+        </label>
+      }
+    </div>
+
+    <footer class="flex flex-col gap-3 pt-1">
+      @if (progress() !== null) {
+        <div class="flex items-center gap-3 text-xs text-subdued">
+          <div class="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+            <div class="h-full bg-accent" [style.width.%]="progress()"></div>
+          </div>
+          {{ progress() }}%
+        </div>
+      }
+      <button type="submit" class="btn-primary w-full" [disabled]="progress() !== null">
+        {{ editing() ? 'Save changes' : 'Create artist' }}
+      </button>
+    </footer>
   </form>
 
-  <section>
-    <h2 class="mb-4 text-xl font-bold">Artists</h2>
+  <section class="min-w-0 xl:pt-6">
+    <div class="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-3">
+      <h2 class="text-xl font-bold">Artists</h2>
+      <input
+        type="search"
+        [formControl]="filterInput"
+        placeholder="Filter by name"
+        aria-label="Filter artists by name"
+        class="h-8 w-56 rounded-full bg-white/10 px-4 text-sm text-white outline-none placeholder:text-subdued focus:ring-1 focus:ring-white"
+      />
+    </div>
     @if (artists(); as artists) {
       @if (!artists.length) {
-        <p class="text-subdued">No artists yet.</p>
+        <p class="text-subdued">No artists found.</p>
       }
       <ul class="divide-y divide-white/5">
         @for (artist of artists; track artist.id) {
-          <li class="flex items-center gap-4 py-2">
+          <li class="flex items-center gap-4 rounded px-2 py-2" [class.bg-highlight]="editing()?.id === artist.id">
             <app-cover-image class="size-12 shrink-0" [src]="artist.imageUrl" [round]="true" placeholder="person" [iconSize]="20" />
-            <a [routerLink]="['/artist', artist.id]" class="flex-1 truncate font-semibold hover:underline">{{ artist.name }}</a>
-            <button type="button" class="btn-icon size-9 hover:bg-white/10 hover:text-danger" [attr.aria-label]="'Delete ' + artist.name" (click)="remove(artist)">
-              <app-icon name="trash" [size]="18" />
-            </button>
+            <a [routerLink]="['/artist', artist.id]" class="min-w-0 flex-1 truncate font-semibold hover:underline">{{ artist.name }}</a>
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                class="btn-icon size-9 hover:bg-white/10"
+                [attr.aria-label]="'Edit ' + artist.name"
+                (click)="startEdit(artist)"
+              >
+                <app-icon name="edit" [size]="18" />
+              </button>
+              <button
+                type="button"
+                class="btn-icon size-9 hover:bg-white/10 hover:text-danger"
+                [attr.aria-label]="'Delete ' + artist.name"
+                (click)="remove(artist)"
+              >
+                <app-icon name="trash" [size]="18" />
+              </button>
+            </div>
           </li>
         }
       </ul>

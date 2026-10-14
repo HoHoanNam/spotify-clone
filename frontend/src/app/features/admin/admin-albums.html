@@ -1,10 +1,27 @@
 @if (data(); as data) {
   <div class="grid gap-10 xl:grid-cols-[380px_1fr]">
-    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 self-start rounded-lg bg-elevated p-6" novalidate>
-      <h2 class="text-xl font-bold">New album</h2>
-      @if (!data.artists.length) {
-        <p class="text-sm text-subdued">Create an artist first.</p>
-      }
+    <!-- Same spacing scale as the Tracks tab: gap-5 between fields · mb-2 label → control -->
+    <form
+      #formEl
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="flex flex-col gap-5 self-start rounded-lg bg-elevated p-6"
+      novalidate
+    >
+      <header>
+        <div class="flex min-h-8 items-center justify-between gap-4">
+          <h2 class="text-xl font-bold">{{ editing() ? 'Edit album' : 'New album' }}</h2>
+          @if (editing()) {
+            <button type="button" class="btn-outline" (click)="cancelEdit()">Cancel</button>
+          }
+        </div>
+        @if (editing(); as album) {
+          <p class="mt-2 text-sm text-subdued">Editing “{{ album.title }}”. Leave the cover empty to keep the current one.</p>
+        } @else if (!data.artists.length) {
+          <p class="mt-2 text-sm text-subdued">Create an artist first.</p>
+        }
+      </header>
+
       <label class="block">
         <span class="mb-2 block text-sm font-bold">Title</span>
         <input formControlName="title" class="field" [class.invalid]="invalid('title')" />
@@ -20,32 +37,86 @@
       </label>
       <label class="block">
         <span class="mb-2 block text-sm font-bold">Release date <span class="font-normal text-subdued">(optional)</span></span>
-        <input type="date" formControlName="releaseDate" class="field [color-scheme:dark]" />
+        <input type="date" formControlName="releaseDate" class="field scheme-dark" />
       </label>
-      <app-file-field label="Cover" accept=".jpg,.jpeg,.png,.webp" hint="JPG, PNG or WebP" [(file)]="cover" />
 
-      @if (progress() !== null) {
-        <div class="h-1 overflow-hidden rounded-full bg-white/10"><div class="h-full bg-accent" [style.width.%]="progress()"></div></div>
-      }
-      <button type="submit" class="btn-primary w-full" [disabled]="progress() !== null">Create album</button>
+      <div>
+        <app-file-field
+          [label]="editing() ? 'Replace cover' : 'Cover'"
+          accept=".jpg,.jpeg,.png,.webp"
+          [hint]="editing() ? 'Keep the current cover' : 'JPG, PNG or WebP'"
+          [(file)]="cover"
+        />
+        @if (editing()?.coverUrl && !cover()) {
+          <label class="mt-2 flex items-center gap-2 text-sm text-subdued">
+            <input
+              type="checkbox"
+              class="size-4 accent-accent"
+              [checked]="removeCover()"
+              (change)="removeCover.set($any($event.target).checked)"
+            />
+            Remove the current cover
+          </label>
+        }
+      </div>
+
+      <footer class="flex flex-col gap-3 pt-1">
+        @if (progress() !== null) {
+          <div class="flex items-center gap-3 text-xs text-subdued">
+            <div class="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+              <div class="h-full bg-accent" [style.width.%]="progress()"></div>
+            </div>
+            {{ progress() }}%
+          </div>
+        }
+        <button type="submit" class="btn-primary w-full" [disabled]="progress() !== null">
+          {{ editing() ? 'Save changes' : 'Create album' }}
+        </button>
+      </footer>
     </form>
 
-    <section>
-      <h2 class="mb-4 text-xl font-bold">Albums</h2>
+    <section class="min-w-0 xl:pt-6">
+      <div class="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-3">
+        <h2 class="text-xl font-bold">Albums</h2>
+        <input
+          type="search"
+          [formControl]="filterInput"
+          placeholder="Filter by title"
+          aria-label="Filter albums by title"
+          class="h-8 w-56 rounded-full bg-white/10 px-4 text-sm text-white outline-none placeholder:text-subdued focus:ring-1 focus:ring-white"
+        />
+      </div>
       @if (!data.albums.length) {
-        <p class="text-subdued">No albums yet.</p>
+        <p class="text-subdued">No albums found.</p>
       }
       <ul class="divide-y divide-white/5">
         @for (album of data.albums; track album.id) {
-          <li class="flex items-center gap-4 py-2">
+          <li class="flex items-center gap-4 rounded px-2 py-2" [class.bg-highlight]="editing()?.id === album.id">
             <app-cover-image class="size-12 shrink-0 rounded" [src]="album.coverUrl" placeholder="album" [iconSize]="20" />
             <div class="min-w-0 flex-1">
               <a [routerLink]="['/album', album.id]" class="block truncate font-semibold hover:underline">{{ album.title }}</a>
-              <p class="truncate text-sm text-subdued">{{ album.artist.name }}{{ album.releaseDate ? ' • ' + album.releaseDate.slice(0, 4) : '' }}</p>
+              <p class="truncate text-sm text-subdued">
+                {{ album.artist.name }}{{ album.releaseDate ? ' • ' + album.releaseDate.slice(0, 4) : '' }}
+              </p>
             </div>
-            <button type="button" class="btn-icon size-9 hover:bg-white/10 hover:text-danger" [attr.aria-label]="'Delete ' + album.title" (click)="remove(album)">
-              <app-icon name="trash" [size]="18" />
-            </button>
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                class="btn-icon size-9 hover:bg-white/10"
+                [attr.aria-label]="'Edit ' + album.title"
+                (click)="startEdit(album)"
+              >
+                <app-icon name="edit" [size]="18" />
+              </button>
+              <button
+                type="button"
+                class="btn-icon size-9 hover:bg-white/10 hover:text-danger"
+                [attr.aria-label]="'Delete ' + album.title"
+                (click)="remove(album)"
+              >
+                <app-icon name="trash" [size]="18" />
+              </button>
+            </div>
           </li>
         }
       </ul>
