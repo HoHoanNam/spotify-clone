@@ -1,0 +1,28 @@
+<a
+  [routerLink]="link()"
+  class="group block rounded-md p-3 transition-colors hover:bg-highlight focus-visible:bg-highlight focus-visible:outline-none"
+>
+  <div class="relative mb-3 aspect-square shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [class.rounded-full]="round()">
+    <app-cover-image
+      class="size-full"
+      [class.rounded-md]="!round()"
+      [src]="imageUrl()"
+      [alt]="title()"
+      [round]="round()"
+      [placeholder]="placeholder()"
+      [iconSize]="48"
+    />
+    @if (playable()) {
+      <app-play-button
+        class="absolute right-2 bottom-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"
+        [class.translate-y-0]="playing()"
+        [class.opacity-100]="playing()"
+        [playing]="playing()"
+        [label]="'Play ' + title()"
+        (pressed)="play.emit()"
+      />
+    }
+  </div>
+  <p class="truncate font-semibold">{{ title() }}</p>
+  <p class="mt-1 line-clamp-2 text-sm text-subdued">{{ subtitle() }}</p>
+</a>
