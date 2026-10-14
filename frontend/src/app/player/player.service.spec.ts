@@ -28,6 +28,10 @@ class FakeAudio extends EventTarget {
   end(): void {
     this.dispatchEvent(new Event('ended'));
   }
+
+  removeAttribute(name: string): void {
+    if (name === 'src') this.src = '';
+  }
 }
 
 function track(id: number): Track {
@@ -51,6 +55,7 @@ describe('PlayerService', () => {
   const tracks = [track(1), track(2), track(3)];
 
   beforeEach(() => {
+    localStorage.clear();
     audio = new FakeAudio();
     recordPlay = vi.fn(() => of(undefined));
     TestBed.configureTestingModule({
@@ -135,5 +140,61 @@ describe('PlayerService', () => {
     player.toggleTracks(tracks);
     expect(player.isPlaying()).toBe(false);
     expect(player.current()?.id).toBe(1);
+  });
+
+  it('plays queued tracks before the rest of the list, then continues the list', () => {
+    player.playTracks(tracks, 0);
+    player.addToQueue([track(9)]);
+    expect(player.upNext().map((t) => t.id)).toEqual([2, 3]);
+
+    player.next();
+    expect(player.current()?.id).toBe(9);
+    expect(player.manualQueue()).toEqual([]);
+
+    player.next();
+    expect(player.current()?.id).toBe(2);
+  });
+
+  it('goes back to the list track when pressing previous on a queued track', () => {
+    player.playTracks(tracks, 1);
+    player.addToQueue([track(9)]);
+    player.next();
+    player.previous();
+    expect(player.current()?.id).toBe(2);
+  });
+
+  it('starts playing right away when queueing with nothing playing', () => {
+    player.addToQueue([track(7)]);
+    expect(player.current()?.id).toBe(7);
+    expect(player.isPlaying()).toBe(true);
+  });
+
+  it('jumps within the queue and the list', () => {
+    player.playTracks(tracks, 0);
+    player.addToQueue([track(7), track(8)]);
+    player.playFromQueue(1);
+    expect(player.current()?.id).toBe(8);
+    expect(player.manualQueue()).toEqual([]);
+
+    player.playUpNext(1);
+    expect(player.current()?.id).toBe(3);
+  });
+
+  it('restores the saved session of the same user, paused', () => {
+    player.restore(42);
+    player.playTracks(tracks, 2, { label: 'Album' });
+    player.reset();
+    expect(player.current()).toBeNull();
+
+    audio.paused = true;
+    player.restore(42);
+    expect(player.current()?.id).toBe(3);
+    expect(player.context()?.label).toBe('Album');
+    expect(audio.src).toBe('/api/media/audio/3');
+    expect(player.isPlaying()).toBe(false);
+
+    player.reset();
+    player.restore(7); // another user on the same browser
+    expect(player.current()).toBeNull();
   });
 });
