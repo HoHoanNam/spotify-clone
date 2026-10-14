@@ -1,0 +1,46 @@
+/* Range slider for the progress bar and the volume control.
+   Set --fill (0%..100%) inline; the filled part turns green on hover. */
+.slider {
+  --fill: 0%;
+  --fill-color: #fff;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 9999px;
+  background: linear-gradient(to right, var(--fill-color) var(--fill), #4d4d4d var(--fill));
+  cursor: pointer;
+  outline: none;
+}
+.slider:hover,
+.slider:focus-visible {
+  --fill-color: var(--color-accent);
+}
+.slider:disabled {
+  cursor: default;
+  --fill-color: #4d4d4d;
+}
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.5);
+}
+.slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0;
+}
+.slider:hover::-webkit-slider-thumb,
+.slider:focus-visible::-webkit-slider-thumb {
+  opacity: 1;
+}
+.slider:hover::-moz-range-thumb,
+.slider:focus-visible::-moz-range-thumb {
+  opacity: 1;
+}
