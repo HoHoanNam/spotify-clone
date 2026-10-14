@@ -16,3 +16,6 @@ Trạng thái: `Proposed` → `Accepted` → (`Deprecated` | `Superseded by ADR-
 | [0006](0006-stateless-jwt-auth.md) | Xác thực stateless bằng JWT | Accepted | 2026-10-12 |
 | [0007](0007-local-file-storage-streaming.md) | Lưu file trên local disk, stream audio qua HTTP Range | Accepted | 2026-10-12 |
 | [0008](0008-api-conventions.md) | Quy ước REST API và định dạng lỗi | Accepted | 2026-10-12 |
+| [0009](0009-catalog-track-model.md) | Bài hát nhiều nghệ sĩ có thứ tự, duration đọc ở backend, ảnh bìa fallback | Accepted | 2026-10-13 |
+| [0010](0010-playlist-ordering.md) | Playlist là aggregate, thứ tự `position` liên tục | Accepted | 2026-10-14 |
+| [0011](0011-library-client-state.md) | Thư viện: bảng nối idempotent + tập id ở client, cập nhật lạc quan | Accepted | 2026-10-14 |
