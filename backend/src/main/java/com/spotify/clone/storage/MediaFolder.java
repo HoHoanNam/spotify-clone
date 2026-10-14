@@ -5,6 +5,7 @@ public enum MediaFolder {
   ARTIST_IMAGES("images/artists"),
   ALBUM_COVERS("images/albums"),
   TRACK_COVERS("images/tracks"),
+  PLAYLIST_COVERS("images/playlists"),
   AVATARS("images/avatars");
 
   private final String path;
