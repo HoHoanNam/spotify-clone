@@ -1,0 +1,10 @@
+<button
+  type="button"
+  class="flex items-center justify-center rounded-full bg-accent text-black shadow-[0_8px_8px_rgb(0_0_0/0.3)] transition-transform hover:scale-105 hover:bg-accent-hover active:scale-100"
+  [style.width.px]="size()"
+  [style.height.px]="size()"
+  [attr.aria-label]="playing() ? 'Pause' : label()"
+  (click)="$event.stopPropagation(); $event.preventDefault(); pressed.emit()"
+>
+  <app-icon [name]="playing() ? 'pause' : 'play'" [size]="size() * 0.45" />
+</button>
