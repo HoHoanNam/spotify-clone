@@ -16,6 +16,7 @@ import com.spotify.clone.artist.dto.ArtistSummary;
 import com.spotify.clone.common.exception.ConflictException;
 import com.spotify.clone.common.exception.ResourceNotFoundException;
 import com.spotify.clone.common.web.PageResponse;
+import com.spotify.clone.library.FollowedArtistRepository;
 import com.spotify.clone.storage.MediaFolder;
 import com.spotify.clone.storage.MediaUploadService;
 import com.spotify.clone.track.TrackRepository;
@@ -31,10 +32,14 @@ public class ArtistService {
   private final AlbumRepository albumRepository;
   private final TrackRepository trackRepository;
   private final MediaUploadService mediaUploadService;
+  private final FollowedArtistRepository followedArtistRepository;
 
   @Transactional(readOnly = true)
-  public PageResponse<ArtistSummary> list(Pageable pageable) {
-    return PageResponse.from(artistRepository.findAll(pageable).map(ArtistSummary::from));
+  public PageResponse<ArtistSummary> list(String q, Pageable pageable) {
+    var page = StringUtils.hasText(q)
+        ? artistRepository.findByNameContainingIgnoreCase(q.strip(), pageable)
+        : artistRepository.findAll(pageable);
+    return PageResponse.from(page.map(ArtistSummary::from));
   }
 
   @Transactional(readOnly = true)
@@ -44,7 +49,10 @@ public class ArtistService {
         .map(AlbumSummary::from).toList();
     List<TrackResponse> topTracks = trackRepository.findTopByArtist(id, PageRequest.of(0, 10)).stream()
         .map(TrackResponse::from).toList();
-    return ArtistDetail.from(artist, albums, topTracks);
+    // "Appears on": tracks where this artist is listed but is not the main artist
+    List<TrackResponse> appearsOn = trackRepository.findFeaturing(id, PageRequest.of(0, 10)).stream()
+        .map(TrackResponse::from).toList();
+    return ArtistDetail.from(artist, followedArtistRepository.countByArtistId(id), albums, topTracks, appearsOn);
   }
 
   @Transactional
@@ -53,6 +61,20 @@ public class ArtistService {
     artist.setBio(StringUtils.hasText(form.bio()) ? form.bio().strip() : null);
     artist.setImagePath(mediaUploadService.storeImage(form.image(), MediaFolder.ARTIST_IMAGES));
     return ArtistSummary.from(artistRepository.save(artist));
+  }
+
+  @Transactional
+  public ArtistSummary update(Long id, ArtistForm form) {
+    Artist artist = find(id);
+    artist.setName(form.name().strip());
+    artist.setBio(StringUtils.hasText(form.bio()) ? form.bio().strip() : null);
+
+    String newImage = mediaUploadService.storeImage(form.image(), MediaFolder.ARTIST_IMAGES);
+    if (newImage != null || Boolean.TRUE.equals(form.removeImage())) {
+      mediaUploadService.deleteAfterCommit(artist.getImagePath());
+      artist.setImagePath(newImage);
+    }
+    return ArtistSummary.from(artist);
   }
 
   @Transactional

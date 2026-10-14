@@ -7,9 +7,11 @@ import com.spotify.clone.artist.Artist;
 import com.spotify.clone.storage.MediaUrls;
 import com.spotify.clone.track.dto.TrackResponse;
 
-public record ArtistDetail(Long id, String name, String imageUrl, String bio,
-                           List<AlbumSummary> albums, List<TrackResponse> topTracks) {
-  public static ArtistDetail from(Artist a, List<AlbumSummary> albums, List<TrackResponse> topTracks) {
-    return new ArtistDetail(a.getId(), a.getName(), MediaUrls.image(a.getImagePath()), a.getBio(), albums, topTracks);
+public record ArtistDetail(Long id, String name, String imageUrl, String bio, long followers,
+                           List<AlbumSummary> albums, List<TrackResponse> topTracks, List<TrackResponse> appearsOn) {
+  public static ArtistDetail from(Artist a, long followers, List<AlbumSummary> albums,
+                                  List<TrackResponse> topTracks, List<TrackResponse> appearsOn) {
+    return new ArtistDetail(a.getId(), a.getName(), MediaUrls.image(a.getImagePath()), a.getBio(), followers,
+        albums, topTracks, appearsOn);
   }
 }
