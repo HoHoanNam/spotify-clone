@@ -3,15 +3,19 @@
   class="group block rounded-md p-3 transition-colors hover:bg-highlight focus-visible:bg-highlight focus-visible:outline-none"
 >
   <div class="relative mb-3 aspect-square shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [class.rounded-full]="round()">
-    <app-cover-image
-      class="size-full"
-      [class.rounded-md]="!round()"
-      [src]="imageUrl()"
-      [alt]="title()"
-      [round]="round()"
-      [placeholder]="placeholder()"
-      [iconSize]="48"
-    />
+    @if (images(); as images) {
+      <app-playlist-cover class="size-full rounded-md" [images]="images" [alt]="title()" [iconSize]="48" />
+    } @else {
+      <app-cover-image
+        class="size-full"
+        [class.rounded-md]="!round()"
+        [src]="imageUrl()"
+        [alt]="title()"
+        [round]="round()"
+        [placeholder]="placeholder()"
+        [iconSize]="48"
+      />
+    }
     @if (playable()) {
       <app-play-button
         class="absolute right-2 bottom-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100"

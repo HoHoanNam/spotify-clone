@@ -1,0 +1,21 @@
+<section>
+  <header class="mb-2 flex items-end justify-between gap-4">
+    <h2 class="text-2xl font-bold tracking-tight">
+      @if (showAll(); as link) {
+        <a [routerLink]="link" class="hover:underline">{{ heading() }}</a>
+      } @else {
+        {{ heading() }}
+      }
+    </h2>
+    @if (showAll(); as link) {
+      <a [routerLink]="link" class="shrink-0 text-sm font-bold text-subdued hover:underline">Show all</a>
+    }
+  </header>
+  <!-- singleRow: extra cards fall into 0-height rows and are clipped, so the row always fits the width -->
+  <div
+    class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]"
+    [class]="singleRow() ? 'grid-rows-[auto] auto-rows-[0] overflow-hidden' : ''"
+  >
+    <ng-content />
+  </div>
+</section>

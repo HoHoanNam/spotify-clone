@@ -1,0 +1,9 @@
+@if (images().length >= 4) {
+  <div class="grid size-full grid-cols-2 grid-rows-2">
+    @for (src of images().slice(0, 4); track $index) {
+      <app-cover-image class="size-full" [src]="src" [alt]="alt()" [iconSize]="iconSize() / 2" />
+    }
+  </div>
+} @else {
+  <app-cover-image class="size-full" [src]="images()[0]" [alt]="alt()" [iconSize]="iconSize()" />
+}
