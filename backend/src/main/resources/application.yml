@@ -26,6 +26,10 @@ spring:
   web:
     error:
       include-stacktrace: never
+  data:
+    web:
+      pageable:
+        max-page-size: 50   # ?size=10000 is capped at 50
   servlet:
     multipart:
       max-file-size: 50MB
