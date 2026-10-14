@@ -14,18 +14,25 @@ Dự án chỉ tập trung vào **core feature** của Spotify, không làm full
 
 ## Mô hình dữ liệu dự kiến
 
-`users`, `artists`, `albums`, `tracks`, `playlists`, `playlist_tracks`, `liked_tracks` — chi tiết sẽ được chốt trong migration và ADR khi triển khai.
+`users` (V2) · `artists`, `albums`, `tracks`, `track_artists` (V3) · `playlists`, `playlist_tracks`, `liked_tracks`, `saved_albums`, `followed_artists`, `play_history` (V4). Chi tiết ở [docs/modules/](../modules/README.md).
 
 ## Các bước
 
 - [x] Bước 0 — Dựng base dự án (backend, frontend, docs)
-- [ ] Bước 1 — Schema DB + Auth (JWT)
-- [ ] Bước 2 — Storage + Admin upload + Media streaming
-- [ ] Bước 3 — Catalog API (tracks/albums/artists/search)
-- [ ] Bước 4 — Playlist + Like API
-- [ ] Bước 5 — Frontend: auth pages, interceptor, guards
-- [ ] Bước 6 — Frontend: PlayerService + player bar
-- [ ] Bước 7 — Frontend: Home/Search/detail, Playlist, Liked, Admin
+- [x] Bước 1 — Schema DB + Auth (JWT)
+- [x] Bước 2 — Storage + Admin upload + Media streaming
+- [x] Bước 3 — Catalog API (tracks/albums/artists/search)
+- [x] Bước 4 — Playlist + Like API (kèm lưu album, follow nghệ sĩ, nghe gần đây)
+- [x] Bước 5 — Frontend: auth pages, interceptor, guards
+- [x] Bước 6 — Frontend: PlayerService + player bar (kèm queue, lưu phiên nghe)
+- [x] Bước 7 — Frontend: Home/Search/detail, Playlist, Liked, Library, Profile, Settings, Admin (dashboard, users)
+
+## Bước tiếp theo đề xuất
+
+- [ ] Docker hoá (PostgreSQL + backend + frontend, volume cho `storage/`)
+- [ ] Refresh token / thu hồi phiên khi đổi mật khẩu
+- [ ] Tìm kiếm nhanh hơn với `pg_trgm`
+- [ ] Test E2E (Playwright) cho luồng chính: đăng nhập → phát nhạc → tạo playlist
 
 ## Ngoài phạm vi (có thể làm sau)
 

@@ -8,6 +8,7 @@ Thư mục này lưu lại **các quyết định kiến trúc** và **các thay
 | [architecture/roadmap.md](architecture/roadmap.md) | Phạm vi core feature và lộ trình triển khai |
 | [architecture/auth-flow.md](architecture/auth-flow.md) | Luồng thực thi Auth: khởi động, đăng ký, đăng nhập, request có token, xử lý lỗi |
 | [architecture/storage-flow.md](architecture/storage-flow.md) | Luồng Storage: lưu, đọc, xoá file audio/ảnh, chặn path traversal, thứ tự giữa DB và file |
+| [modules/](modules/README.md) | Tài liệu từng module: Catalog, Playlist, Thư viện, Tài khoản, Admin, Player, giao diện dùng chung |
 | [development/setup.md](development/setup.md) | Hướng dẫn cài đặt và chạy dự án local |
 | [adr/](adr/README.md) | Architecture Decision Records — mỗi quyết định kiến trúc một file |
 | [CHANGELOG.md](CHANGELOG.md) | Nhật ký các thay đổi quan trọng theo thời gian |
