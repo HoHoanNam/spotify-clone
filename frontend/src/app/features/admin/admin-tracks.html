@@ -137,9 +137,18 @@
 
     <!-- xl:pt-6 lines the heading up with the form heading (the form card has p-6) -->
     <section class="min-w-0 xl:pt-6">
-      <h2 class="mb-4 flex min-h-8 items-center text-xl font-bold">Tracks</h2>
+      <div class="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-3">
+        <h2 class="text-xl font-bold">Tracks</h2>
+        <input
+          type="search"
+          [formControl]="filterInput"
+          placeholder="Filter by title"
+          aria-label="Filter tracks by title"
+          class="h-8 w-56 rounded-full bg-white/10 px-4 text-sm text-white outline-none placeholder:text-subdued focus:ring-1 focus:ring-white"
+        />
+      </div>
       @if (!data.tracks.length) {
-        <p class="text-subdued">No tracks yet.</p>
+        <p class="text-subdued">No tracks found.</p>
       }
       <ul class="divide-y divide-white/5">
         @for (track of data.tracks; track track.id; let i = $index) {

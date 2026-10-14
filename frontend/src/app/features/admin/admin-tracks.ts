@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin, map, switchMap } from 'rxjs';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { debounceTime, forkJoin, map, switchMap } from 'rxjs';
 import { AdminService } from '../../core/api/admin.service';
 import { CatalogService } from '../../core/api/catalog.service';
 import { ArtistSummary, Track } from '../../core/models';
@@ -11,6 +11,7 @@ import { ArtistLinks } from '../../shared/artist-links';
 import { CoverImage } from '../../shared/cover-image';
 import { DurationPipe } from '../../shared/duration.pipe';
 import { Icon } from '../../shared/icon';
+import { ConfirmService } from '../../shared/dialog/confirm.service';
 import { PageStatus } from '../../shared/page-status';
 import { ToastService } from '../../shared/toast.service';
 import { FileField } from './file-field';
@@ -27,6 +28,7 @@ export class AdminTracks {
   private readonly admin = inject(AdminService);
   private readonly catalog = inject(CatalogService);
   private readonly toast = inject(ToastService);
+  private readonly confirms = inject(ConfirmService);
 
   protected readonly form = inject(FormBuilder).group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -45,14 +47,19 @@ export class AdminTracks {
   private readonly formEl = viewChild<ElementRef<HTMLFormElement>>('formEl');
 
   private readonly reload = signal(0);
+  /** Title filter of the list (server-side ?q=), debounced while typing. */
+  protected readonly filterInput = new FormControl('', { nonNullable: true });
+  private readonly filter = toSignal(this.filterInput.valueChanges.pipe(debounceTime(300), map((q) => q.trim())), {
+    initialValue: '',
+  });
   private readonly state = toSignal(
-    toObservable(this.reload).pipe(
-      switchMap(() =>
+    toObservable(computed(() => ({ n: this.reload(), q: this.filter() }))).pipe(
+      switchMap(({ q }) =>
         loadable(
           forkJoin({
-            tracks: this.catalog.tracks({ size: 50 }).pipe(map((p) => p.content)),
+            tracks: this.catalog.tracks({ q, size: 50 }).pipe(map((p) => p.content)),
             albums: this.catalog.albums({ size: 50 }).pipe(map((p) => p.content)),
-            artists: this.catalog.artists({ size: 50 }).pipe(map((p) => p.content)),
+            artists: this.catalog.artists({ size: 50, sort: 'name' }).pipe(map((p) => p.content)),
           }),
         ),
       ),
@@ -163,8 +170,14 @@ export class AdminTracks {
     });
   }
 
-  protected remove(track: Track): void {
-    if (!confirm(`Delete "${track.title}"? The audio file is removed too.`)) return;
+  protected async remove(track: Track): Promise<void> {
+    const ok = await this.confirms.confirm({
+      title: 'Delete track?',
+      message: `"${track.title}" and its audio file will be deleted. It also disappears from every playlist and Liked Songs.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    });
+    if (!ok) return;
     this.admin.delete('tracks', track.id).subscribe({
       next: () => {
         this.toast.show(`Deleted ${track.title}`);
