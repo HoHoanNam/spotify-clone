@@ -1,0 +1,62 @@
+@if (artist(); as artist) {
+  <header
+    class="relative flex h-[340px] items-end bg-cover bg-center px-4 pb-6 sm:px-6"
+    [style.background-color]="color()"
+    [style.background-image]="artist.imageUrl ? 'url(' + artist.imageUrl + ')' : null"
+  >
+    <div class="absolute inset-0 bg-linear-to-b from-transparent to-black/60"></div>
+    <div class="relative min-w-0">
+      <p class="text-sm font-medium">Artist</p>
+      <h1 class="mt-2 text-5xl font-extrabold tracking-tight break-words sm:text-7xl xl:text-8xl">{{ artist.name }}</h1>
+    </div>
+  </header>
+
+  <div class="bg-linear-to-b from-black/30 to-base to-[240px] px-4 pb-10 sm:px-6">
+    <div class="py-6">
+      @if (artist.topTracks.length) {
+        <app-play-button
+          [size]="56"
+          [playing]="player.isCurrentList(artist.topTracks) && player.isPlaying()"
+          [label]="'Play ' + artist.name"
+          (pressed)="player.toggleTracks(artist.topTracks)"
+        />
+      }
+    </div>
+
+    @if (artist.topTracks.length) {
+      <section class="mb-10">
+        <h2 class="mb-4 text-2xl font-bold tracking-tight">Popular</h2>
+        <app-track-list [tracks]="visibleTracks()" [showHeader]="false" [showAlbum]="false" />
+        @if (artist.topTracks.length > 5) {
+          <button type="button" class="mt-4 px-4 text-sm font-bold text-subdued hover:text-white" (click)="showAll.set(!showAll())">
+            {{ showAll() ? 'Show less' : 'See more' }}
+          </button>
+        }
+      </section>
+    }
+
+    @if (artist.albums.length) {
+      <section class="mb-10">
+        <h2 class="mb-2 text-2xl font-bold tracking-tight">Discography</h2>
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (album of artist.albums; track album.id) {
+            <app-media-card [title]="album.title" [subtitle]="albumSubtitle(album)" [imageUrl]="album.coverUrl" [link]="['/album', album.id]" [playable]="false" />
+          }
+        </div>
+      </section>
+    }
+
+    @if (artist.bio) {
+      <section class="max-w-3xl">
+        <h2 class="mb-4 text-2xl font-bold tracking-tight">About</h2>
+        <p class="rounded-lg bg-elevated p-6 whitespace-pre-line text-subdued">{{ artist.bio }}</p>
+      </section>
+    }
+
+    @if (!artist.topTracks.length && !artist.albums.length) {
+      <p class="text-subdued">No music from this artist yet.</p>
+    }
+  </div>
+} @else {
+  <app-page-status [error]="error()" />
+}

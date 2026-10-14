@@ -1,0 +1,47 @@
+@if (album(); as album) {
+  <header
+    class="flex flex-col gap-6 px-4 pt-16 pb-6 sm:flex-row sm:items-end sm:px-6"
+    [style.background]="'linear-gradient(' + color() + ', ' + color() + 'aa)'"
+  >
+    <app-cover-image
+      class="size-48 shrink-0 self-center rounded shadow-[0_4px_60px_rgb(0_0_0/0.5)] sm:size-[232px] sm:self-auto"
+      [src]="album.coverUrl"
+      [alt]="album.title"
+      placeholder="album"
+      [iconSize]="64"
+    />
+    <div class="min-w-0">
+      <p class="text-sm font-medium">Album</p>
+      <h1 class="my-2 text-4xl font-extrabold tracking-tight break-words sm:text-6xl xl:text-7xl">{{ album.title }}</h1>
+      <p class="flex flex-wrap items-center gap-1 text-sm">
+        <app-cover-image class="size-6" [src]="album.artist.imageUrl" [round]="true" placeholder="person" [iconSize]="14" />
+        <a [routerLink]="['/artist', album.artist.id]" class="font-bold hover:underline">{{ album.artist.name }}</a>
+        @if (album.releaseDate) {
+          <span>• {{ album.releaseDate.slice(0, 4) }}</span>
+        }
+        <span>• {{ album.tracks.length }} {{ album.tracks.length === 1 ? 'song' : 'songs' }},</span>
+        <span class="text-subdued">{{ totalSeconds() | longDuration }}</span>
+      </p>
+    </div>
+  </header>
+
+  <div class="bg-linear-to-b from-black/20 to-base to-[240px] px-4 pb-10 sm:px-6">
+    <div class="py-6">
+      @if (album.tracks.length) {
+        <app-play-button
+          [size]="56"
+          [playing]="player.isCurrentList(album.tracks) && player.isPlaying()"
+          [label]="'Play ' + album.title"
+          (pressed)="player.toggleTracks(album.tracks)"
+        />
+      }
+    </div>
+    @if (album.tracks.length) {
+      <app-track-list [tracks]="album.tracks" [showAlbum]="false" [showCover]="false" [useTrackNumber]="true" />
+    } @else {
+      <p class="text-subdued">This album has no tracks yet.</p>
+    }
+  </div>
+} @else {
+  <app-page-status [error]="error()" />
+}
