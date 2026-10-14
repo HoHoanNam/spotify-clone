@@ -56,6 +56,11 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.api}/auth/register`, req).pipe(tap((res) => this.store(res)));
   }
 
+  /** After the user edits their own account (name, avatar). */
+  setUser(user: User): void {
+    this._user.set(user);
+  }
+
   logout(): void {
     this.clear();
     this.router.navigate(['/login']);

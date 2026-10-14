@@ -1,13 +1,16 @@
-import { HttpClient, HttpEvent } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AlbumSummary, ArtistSummary, Track } from '../models';
+import { AdminStats, AdminUser, AlbumSummary, ArtistSummary, Page, Role, Track } from '../models';
+import { toFormData } from '../util/form-data';
 
 export interface ArtistForm {
   name: string;
   bio?: string | null;
   image?: File | null;
+  /** Update only: drop the current image. */
+  removeImage?: boolean;
 }
 
 export interface AlbumForm {
@@ -15,6 +18,8 @@ export interface AlbumForm {
   artistId: number;
   releaseDate?: string | null;
   cover?: File | null;
+  /** Update only: drop the current cover. */
+  removeCover?: boolean;
 }
 
 export interface TrackForm {
@@ -48,8 +53,16 @@ export class AdminService {
     return this.upload<ArtistSummary>('artists', toFormData(form));
   }
 
+  updateArtist(id: number, form: ArtistForm): Observable<HttpEvent<ArtistSummary>> {
+    return this.upload<ArtistSummary>(`artists/${id}`, toFormData(form), 'PUT');
+  }
+
   createAlbum(form: AlbumForm): Observable<HttpEvent<AlbumSummary>> {
     return this.upload<AlbumSummary>('albums', toFormData(form));
+  }
+
+  updateAlbum(id: number, form: AlbumForm): Observable<HttpEvent<AlbumSummary>> {
+    return this.upload<AlbumSummary>(`albums/${id}`, toFormData(form), 'PUT');
   }
 
   createTrack(form: TrackForm): Observable<HttpEvent<Track>> {
@@ -64,23 +77,21 @@ export class AdminService {
     return this.http.delete<void>(`${this.api}/${kind}/${id}`);
   }
 
+  stats(): Observable<AdminStats> {
+    return this.http.get<AdminStats>(`${this.api}/stats`);
+  }
+
+  users(page = 0, q = ''): Observable<Page<AdminUser>> {
+    let params = new HttpParams().set('page', page).set('size', 20);
+    if (q.trim()) params = params.set('q', q.trim());
+    return this.http.get<Page<AdminUser>>(`${this.api}/users`, { params });
+  }
+
+  updateUser(id: number, change: { role?: Role; enabled?: boolean }): Observable<AdminUser> {
+    return this.http.patch<AdminUser>(`${this.api}/users/${id}`, change);
+  }
+
   private upload<T>(path: string, body: FormData, method: 'POST' | 'PUT' = 'POST'): Observable<HttpEvent<T>> {
     return this.http.request<T>(method, `${this.api}/${path}`, { body, reportProgress: true, observe: 'events' });
   }
-}
-
-/** Arrays become repeated fields (artistIds=1&artistIds=2), which Spring binds to List<Long>. */
-function toFormData(form: object): FormData {
-  const data = new FormData();
-  for (const [key, value] of Object.entries(form)) {
-    if (value === null || value === undefined || value === '') continue;
-    if (Array.isArray(value)) {
-      value.forEach((v) => data.append(key, String(v)));
-    } else if (value instanceof File) {
-      data.append(key, value, value.name);
-    } else {
-      data.append(key, String(value));
-    }
-  }
-  return data;
 }
