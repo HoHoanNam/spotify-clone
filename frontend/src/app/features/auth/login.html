@@ -1,0 +1,47 @@
+<app-auth-layout heading="Log in to Spotify Clone">
+  @if (error()) {
+    <p role="alert" class="mb-6 rounded bg-[#e91429] px-4 py-3 text-sm font-medium">{{ error() }}</p>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4" novalidate>
+    <label class="block">
+      <span class="mb-2 block text-sm font-bold">Email</span>
+      <input
+        type="email"
+        formControlName="email"
+        autocomplete="email"
+        placeholder="Email"
+        class="field"
+        [class.invalid]="showError('email')"
+      />
+      @if (showError('email')) {
+        <span class="mt-2 block text-sm text-danger">Please enter a valid email address.</span>
+      }
+    </label>
+
+    <label class="block">
+      <span class="mb-2 block text-sm font-bold">Password</span>
+      <input
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+        placeholder="Password"
+        class="field"
+        [class.invalid]="showError('password')"
+      />
+      @if (showError('password')) {
+        <span class="mt-2 block text-sm text-danger">Please enter your password.</span>
+      }
+    </label>
+
+    <button type="submit" class="btn-primary mt-4 w-full" [disabled]="submitting()">
+      {{ submitting() ? 'Logging in…' : 'Log In' }}
+    </button>
+  </form>
+
+  <hr class="my-8 border-white/10" />
+  <p class="text-center text-subdued">
+    Don't have an account?
+    <a routerLink="/register" class="font-semibold text-white underline hover:text-accent">Sign up</a>
+  </p>
+</app-auth-layout>
