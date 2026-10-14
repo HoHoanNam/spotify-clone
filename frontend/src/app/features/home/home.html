@@ -1,0 +1,84 @@
+<div class="bg-linear-to-b from-[#1e3264] via-base/80 to-base to-[320px] px-4 pt-6 pb-10 sm:px-6">
+  <h1 class="mb-6 text-3xl font-bold tracking-tight">{{ greeting }}</h1>
+
+  @if (data(); as data) {
+    @if (!data.tracks.length && !data.albums.length && !data.artists.length) {
+      <div class="py-20 text-center">
+        <p class="text-2xl font-bold">No music yet</p>
+        @if (auth.isAdmin()) {
+          <p class="mt-2 text-subdued">Upload the first artist, album and tracks.</p>
+          <a routerLink="/admin" class="btn-primary mt-6">Go to Admin</a>
+        } @else {
+          <p class="mt-2 text-subdued">Check back once an admin has uploaded some tracks.</p>
+        }
+      </div>
+    }
+
+    <!-- Quick-play tiles, like Spotify's top grid -->
+    @if (data.tracks.length) {
+      <div class="mb-10 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        @for (track of data.tracks; track track.id; let i = $index) {
+          @let playing = player.isCurrent(track.id) && player.isPlaying();
+          <div
+            class="group flex h-14 cursor-pointer items-center gap-3 overflow-hidden rounded bg-white/10 pr-2 transition-colors hover:bg-white/20"
+            (click)="playTile(data.tracks, i)"
+          >
+            <app-cover-image
+              class="size-14 shrink-0 shadow-[0_8px_24px_rgb(0_0_0/0.5)]"
+              [src]="track.coverUrl"
+              [alt]="track.title"
+              [iconSize]="24"
+            />
+            <span class="flex-1 truncate font-bold" [class.text-accent]="player.isCurrent(track.id)">{{ track.title }}</span>
+            <app-play-button
+              class="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+              [class.opacity-100]="playing"
+              [size]="32"
+              [playing]="playing"
+              [label]="'Play ' + track.title"
+              (pressed)="playTile(data.tracks, i)"
+            />
+          </div>
+        }
+      </div>
+    }
+
+    @if (data.albums.length) {
+      <section class="mb-8">
+        <h2 class="mb-2 text-2xl font-bold tracking-tight">Albums</h2>
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (album of data.albums; track album.id) {
+            <app-media-card
+              [title]="album.title"
+              [subtitle]="subtitle(album)"
+              [imageUrl]="album.coverUrl"
+              [link]="['/album', album.id]"
+              [playable]="false"
+            />
+          }
+        </div>
+      </section>
+    }
+
+    @if (data.artists.length) {
+      <section class="mb-8">
+        <h2 class="mb-2 text-2xl font-bold tracking-tight">Artists</h2>
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (artist of data.artists; track artist.id) {
+            <app-media-card
+              [title]="artist.name"
+              subtitle="Artist"
+              [imageUrl]="artist.imageUrl"
+              [link]="['/artist', artist.id]"
+              [round]="true"
+              placeholder="person"
+              [playable]="false"
+            />
+          }
+        </div>
+      </section>
+    }
+  } @else {
+    <app-page-status [error]="error()" />
+  }
+</div>
