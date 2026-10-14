@@ -1,87 +1,278 @@
-<div class="px-4 pt-6 pb-10 sm:px-6">
+<div class="px-4 pt-4 pb-10 sm:px-6">
   @if (!term()) {
-    <div class="py-20 text-center">
-      <p class="text-2xl font-bold">Search Spotify Clone</p>
-      <p class="mt-2 text-subdued">Find songs, artists and albums with the search box above.</p>
+    <!-- No query: recent searches + browse tiles -->
+    @if (recent.items().length) {
+      <section class="mb-10">
+        <header class="mb-4 flex items-end justify-between">
+          <h2 class="text-2xl font-bold tracking-tight">Recent searches</h2>
+          <button type="button" class="text-sm font-bold text-subdued hover:underline" (click)="recent.clear()">
+            Clear recent searches
+          </button>
+        </header>
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (item of recent.items(); track item.kind + item.id) {
+            <a [routerLink]="item.link" class="group relative block rounded-md p-3 hover:bg-highlight">
+              <app-cover-image
+                class="mb-3 aspect-square w-full shadow-[0_8px_24px_rgb(0_0_0/0.5)]"
+                [class.rounded-md]="item.kind !== 'artist'"
+                [src]="item.imageUrl"
+                [round]="item.kind === 'artist'"
+                [placeholder]="item.kind === 'artist' ? 'person' : item.kind === 'album' ? 'album' : 'note'"
+                [iconSize]="48"
+              />
+              <p class="truncate font-semibold">{{ item.title }}</p>
+              <p class="mt-1 truncate text-sm text-subdued">{{ item.subtitle }}</p>
+              <button
+                type="button"
+                class="absolute top-2 right-2 flex size-8 items-center justify-center rounded-full bg-black/70 text-subdued opacity-0 group-hover:opacity-100 hover:text-white focus-visible:opacity-100"
+                [attr.aria-label]="'Remove ' + item.title + ' from recent searches'"
+                (click)="removeRecent($event, item)"
+              >
+                <app-icon name="close" [size]="16" />
+              </button>
+            </a>
+          }
+        </div>
+      </section>
+    }
+
+    <h2 class="mb-4 text-2xl font-bold tracking-tight">Browse all</h2>
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))]">
+      @for (tile of browse; track tile.link) {
+        <a
+          [routerLink]="tile.link"
+          class="relative block aspect-[1.6] overflow-hidden rounded-lg p-4 text-xl font-bold transition-transform hover:scale-[1.02]"
+          [style.background-color]="tile.color"
+          >{{ tile.label }}</a
+        >
+      }
     </div>
-  } @else if (result(); as result) {
-    @if (!result.tracks.length && !result.albums.length && !result.artists.length) {
-      <div class="py-20 text-center">
-        <p class="text-2xl font-bold">No results found for "{{ term() }}"</p>
-        <p class="mt-2 text-subdued">Please make sure your words are spelled correctly, or use fewer or different keywords.</p>
-      </div>
-    } @else {
-      <div class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-        @if (topKind(); as kind) {
-          <section>
-            <h2 class="mb-4 text-2xl font-bold tracking-tight">Top result</h2>
-            @switch (kind) {
-              @case ('artist') {
-                @let artist = result.artists[0];
-                <a [routerLink]="['/artist', artist.id]" class="group relative block rounded-lg bg-card p-5 transition-colors hover:bg-highlight">
-                  <app-cover-image class="mb-5 size-24 shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [src]="artist.imageUrl" [round]="true" placeholder="person" />
-                  <p class="truncate text-3xl font-bold">{{ artist.name }}</p>
-                  <p class="mt-1 text-sm text-subdued">Artist</p>
-                </a>
-              }
-              @case ('album') {
-                @let album = result.albums[0];
-                <a [routerLink]="['/album', album.id]" class="group relative block rounded-lg bg-card p-5 transition-colors hover:bg-highlight">
-                  <app-cover-image class="mb-5 size-24 rounded shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [src]="album.coverUrl" placeholder="album" />
-                  <p class="truncate text-3xl font-bold">{{ album.title }}</p>
-                  <p class="mt-1 text-sm text-subdued">Album • {{ album.artist.name }}</p>
-                </a>
-              }
-              @case ('track') {
-                @let track = result.tracks[0];
-                @let playing = player.isCurrent(track.id) && player.isPlaying();
-                <div class="group relative rounded-lg bg-card p-5 transition-colors hover:bg-highlight">
-                  <app-cover-image class="mb-5 size-24 rounded shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [src]="track.coverUrl" />
-                  <p class="truncate text-3xl font-bold">{{ track.title }}</p>
-                  <p class="mt-1 truncate text-sm text-subdued">Song • <app-artist-links [artists]="track.artists" /></p>
-                  <app-play-button
-                    class="absolute right-5 bottom-5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
-                    [class.opacity-100]="playing"
-                    [playing]="playing"
-                    (pressed)="playing ? player.toggle() : player.playTracks(result.tracks, 0)"
-                  />
-                </div>
-              }
+  } @else {
+    <nav class="mb-6 flex gap-2 overflow-x-auto" aria-label="Result type">
+      @for (t of tabs; track t.value) {
+        <a
+          class="chip"
+          [class.active]="tab() === t.value"
+          [routerLink]="[]"
+          [queryParams]="{ type: t.value === 'all' ? null : t.value }"
+          queryParamsHandling="merge"
+          replaceUrl
+          >{{ t.label }}</a
+        >
+      }
+    </nav>
+
+    @if (tab() === 'all') {
+      @if (result(); as result) {
+        @if (!result.tracks.length && !result.albums.length && !result.artists.length && !result.playlists.length) {
+          <div class="py-20 text-center">
+            <p class="text-2xl font-bold">No results found for "{{ term() }}"</p>
+            <p class="mt-2 text-subdued">Please make sure your words are spelled correctly, or use fewer or different keywords.</p>
+          </div>
+        } @else {
+          <div class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+            @if (topKind(); as kind) {
+              <section>
+                <h2 class="mb-4 text-2xl font-bold tracking-tight">Top result</h2>
+                @switch (kind) {
+                  @case ('artist') {
+                    @let artist = result.artists[0];
+                    <a
+                      [routerLink]="['/artist', artist.id]"
+                      class="group relative block rounded-lg bg-card p-5 transition-colors hover:bg-highlight"
+                      (click)="rememberArtist(artist)"
+                    >
+                      <app-cover-image class="mb-5 size-24 shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [src]="artist.imageUrl" [round]="true" placeholder="person" />
+                      <p class="truncate text-3xl font-bold">{{ artist.name }}</p>
+                      <p class="mt-1 text-sm text-subdued">Artist</p>
+                      <app-play-button
+                        class="absolute right-5 bottom-5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                        [class.opacity-100]="lists.isPlaying('artist', artist.id)"
+                        [playing]="lists.isPlaying('artist', artist.id)"
+                        (pressed)="lists.toggle('artist', artist.id)"
+                      />
+                    </a>
+                  }
+                  @case ('album') {
+                    @let album = result.albums[0];
+                    <a
+                      [routerLink]="['/album', album.id]"
+                      class="group relative block rounded-lg bg-card p-5 transition-colors hover:bg-highlight"
+                      (click)="rememberAlbum(album)"
+                    >
+                      <app-cover-image class="mb-5 size-24 rounded shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [src]="album.coverUrl" placeholder="album" />
+                      <p class="truncate text-3xl font-bold">{{ album.title }}</p>
+                      <p class="mt-1 text-sm text-subdued">Album • {{ album.artist.name }}</p>
+                      <app-play-button
+                        class="absolute right-5 bottom-5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                        [class.opacity-100]="lists.isPlaying('album', album.id)"
+                        [playing]="lists.isPlaying('album', album.id)"
+                        (pressed)="lists.toggle('album', album.id)"
+                      />
+                    </a>
+                  }
+                  @case ('track') {
+                    @let track = result.tracks[0];
+                    @let playing = player.isCurrent(track.id) && player.isPlaying();
+                    <div class="group relative rounded-lg bg-card p-5 transition-colors hover:bg-highlight">
+                      <app-cover-image class="mb-5 size-24 rounded shadow-[0_8px_24px_rgb(0_0_0/0.5)]" [src]="track.coverUrl" />
+                      <p class="truncate text-3xl font-bold">{{ track.title }}</p>
+                      <p class="mt-1 truncate text-sm text-subdued">Song • <app-artist-links [artists]="track.artists" /></p>
+                      <app-play-button
+                        class="absolute right-5 bottom-5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                        [class.opacity-100]="playing"
+                        [playing]="playing"
+                        (pressed)="playing ? player.toggle() : playTop(result.tracks)"
+                      />
+                    </div>
+                  }
+                }
+              </section>
             }
-          </section>
-        }
 
-        @if (result.tracks.length) {
-          <section class="min-w-0">
-            <h2 class="mb-4 text-2xl font-bold tracking-tight">Songs</h2>
-            <app-track-list [tracks]="result.tracks.slice(0, 4)" [showHeader]="false" [showAlbum]="false" />
-          </section>
-        }
-      </div>
-
-      @if (result.artists.length) {
-        <section class="mb-8">
-          <h2 class="mb-2 text-2xl font-bold tracking-tight">Artists</h2>
-          <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
-            @for (artist of result.artists; track artist.id) {
-              <app-media-card [title]="artist.name" subtitle="Artist" [imageUrl]="artist.imageUrl" [link]="['/artist', artist.id]" [round]="true" placeholder="person" [playable]="false" />
+            @if (result.tracks.length) {
+              <section class="min-w-0">
+                <header class="mb-4 flex items-end justify-between">
+                  <h2 class="text-2xl font-bold tracking-tight">Songs</h2>
+                  <a [routerLink]="[]" [queryParams]="{ type: 'songs' }" queryParamsHandling="merge" class="text-sm font-bold text-subdued hover:underline">Show all</a>
+                </header>
+                <app-track-list
+                  [tracks]="result.tracks.slice(0, 4)"
+                  [showHeader]="false"
+                  [showAlbum]="false"
+                  [context]="{ label: 'Search: ' + term() }"
+                />
+              </section>
             }
           </div>
-        </section>
+
+          @if (result.artists.length) {
+            <section class="mb-8">
+              <h2 class="mb-2 text-2xl font-bold tracking-tight">Artists</h2>
+              <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+                @for (artist of result.artists; track artist.id) {
+                  <app-media-card
+                    [title]="artist.name"
+                    subtitle="Artist"
+                    [imageUrl]="artist.imageUrl"
+                    [link]="['/artist', artist.id]"
+                    [round]="true"
+                    placeholder="person"
+                    [playing]="lists.isPlaying('artist', artist.id)"
+                    (play)="lists.toggle('artist', artist.id)"
+                    (click)="rememberArtist(artist)"
+                  />
+                }
+              </div>
+            </section>
+          }
+
+          @if (result.albums.length) {
+            <section class="mb-8">
+              <h2 class="mb-2 text-2xl font-bold tracking-tight">Albums</h2>
+              <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+                @for (album of result.albums; track album.id) {
+                  <app-media-card
+                    [title]="album.title"
+                    [subtitle]="album.artist.name"
+                    [imageUrl]="album.coverUrl"
+                    [link]="['/album', album.id]"
+                    [playing]="lists.isPlaying('album', album.id)"
+                    (play)="lists.toggle('album', album.id)"
+                    (click)="rememberAlbum(album)"
+                  />
+                }
+              </div>
+            </section>
+          }
+
+          @if (result.playlists.length) {
+            <section class="mb-8">
+              <h2 class="mb-2 text-2xl font-bold tracking-tight">Playlists</h2>
+              <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+                @for (playlist of result.playlists; track playlist.id) {
+                  <app-media-card
+                    [title]="playlist.name"
+                    [subtitle]="'By ' + playlist.owner.username"
+                    [images]="playlist.images"
+                    [link]="['/playlist', playlist.id]"
+                    [playing]="lists.isPlaying('playlist', playlist.id)"
+                    (play)="lists.toggle('playlist', playlist.id)"
+                    (click)="rememberPlaylist(playlist)"
+                  />
+                }
+              </div>
+            </section>
+          }
+        }
+      } @else {
+        <app-page-status [error]="error()" />
+      }
+    } @else {
+      <!-- One kind, infinite scroll -->
+      @switch (tab()) {
+        @case ('songs') {
+          <app-track-list [tracks]="pagedTracks()" [context]="{ label: 'Search: ' + term() }" />
+        }
+        @case ('artists') {
+          <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+            @for (artist of pagedArtists(); track artist.id) {
+              <app-media-card
+                [title]="artist.name"
+                subtitle="Artist"
+                [imageUrl]="artist.imageUrl"
+                [link]="['/artist', artist.id]"
+                [round]="true"
+                placeholder="person"
+                [playing]="lists.isPlaying('artist', artist.id)"
+                (play)="lists.toggle('artist', artist.id)"
+                (click)="rememberArtist(artist)"
+              />
+            }
+          </div>
+        }
+        @case ('albums') {
+          <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+            @for (album of pagedAlbums(); track album.id) {
+              <app-media-card
+                [title]="album.title"
+                [subtitle]="album.artist.name"
+                [imageUrl]="album.coverUrl"
+                [link]="['/album', album.id]"
+                [playing]="lists.isPlaying('album', album.id)"
+                (play)="lists.toggle('album', album.id)"
+                (click)="rememberAlbum(album)"
+              />
+            }
+          </div>
+        }
+        @case ('playlists') {
+          <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+            @for (playlist of pagedPlaylists(); track playlist.id) {
+              <app-media-card
+                [title]="playlist.name"
+                [subtitle]="'By ' + playlist.owner.username"
+                [images]="playlist.images"
+                [link]="['/playlist', playlist.id]"
+                [playing]="lists.isPlaying('playlist', playlist.id)"
+                (play)="lists.toggle('playlist', playlist.id)"
+                (click)="rememberPlaylist(playlist)"
+              />
+            }
+          </div>
+        }
       }
 
-      @if (result.albums.length) {
-        <section class="mb-8">
-          <h2 class="mb-2 text-2xl font-bold tracking-tight">Albums</h2>
-          <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
-            @for (album of result.albums; track album.id) {
-              <app-media-card [title]="album.title" [subtitle]="album.artist.name" [imageUrl]="album.coverUrl" [link]="['/album', album.id]" [playable]="false" />
-            }
-          </div>
-        </section>
+      @if (paged.done() && !paged.items().length) {
+        <p class="py-20 text-center text-subdued">No results found for "{{ term() }}"</p>
+      }
+      @if (paged.error(); as message) {
+        <app-page-status [error]="message" />
+      } @else if (paged.loading()) {
+        <app-page-status />
+      } @else if (!paged.done()) {
+        <div (appInfiniteScroll)="paged.loadMore()"></div>
       }
     }
-  } @else {
-    <app-page-status [error]="error()" />
   }
 </div>
