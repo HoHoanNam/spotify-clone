@@ -1,0 +1,19 @@
+<span class="mb-2 block text-sm font-bold">
+  {{ label() }}
+  @if (!required()) {
+    <span class="font-normal text-subdued">(optional)</span>
+  }
+</span>
+<label
+  class="flex cursor-pointer items-center gap-3 rounded border border-dashed border-muted px-3.5 py-3 text-sm transition-colors hover:border-white focus-within:border-white"
+  [class.border-danger]="invalid()"
+>
+  <app-icon name="upload" [size]="18" class="text-subdued" />
+  <span class="flex-1 truncate" [class.text-subdued]="!file()">{{ file()?.name ?? hint() }}</span>
+  @if (file()) {
+    <button type="button" class="btn-icon" aria-label="Remove file" (click)="$event.preventDefault(); file.set(null)">
+      <app-icon name="close" [size]="16" />
+    </button>
+  }
+  <input #input type="file" class="sr-only" [accept]="accept()" (change)="onChange(input)" />
+</label>
