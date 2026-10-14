@@ -1,15 +1,10 @@
 <div class="px-4 pt-6 pb-10 sm:px-6">
   <h1 class="text-3xl font-bold tracking-tight">Admin</h1>
-  <p class="mt-1 text-subdued">Upload and manage the music catalog.</p>
+  <p class="mt-1 text-subdued">Manage the music catalog and user accounts.</p>
 
-  <nav class="mt-6 mb-8 flex gap-2" aria-label="Admin sections">
+  <nav class="mt-6 mb-8 flex gap-2 overflow-x-auto" aria-label="Admin sections">
     @for (tab of tabs; track tab.path) {
-      <a
-        [routerLink]="tab.path"
-        routerLinkActive="bg-white! text-black!"
-        class="rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium transition-colors hover:bg-white/20"
-        >{{ tab.label }}</a
-      >
+      <a [routerLink]="tab.path" routerLinkActive="active" class="chip">{{ tab.label }}</a>
     }
   </nav>
 

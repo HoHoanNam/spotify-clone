@@ -10,8 +10,10 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 })
 export class AdminLayout {
   protected readonly tabs = [
+    { path: 'dashboard', label: 'Dashboard' },
     { path: 'tracks', label: 'Tracks' },
     { path: 'albums', label: 'Albums' },
     { path: 'artists', label: 'Artists' },
+    { path: 'users', label: 'Users' },
   ];
 }

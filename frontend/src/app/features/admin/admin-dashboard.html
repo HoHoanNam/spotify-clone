@@ -1,0 +1,24 @@
+@if (stats(); as stats) {
+  <div class="mb-10 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
+    @for (card of cards(); track card.label) {
+      <div class="rounded-lg bg-elevated p-5">
+        <div class="flex items-center gap-2 text-sm text-subdued">
+          <app-icon [name]="card.icon" [size]="18" />
+          {{ card.label }}
+        </div>
+        <p class="mt-3 text-3xl font-bold tabular-nums">{{ card.value }}</p>
+      </div>
+    }
+  </div>
+
+  <section>
+    <h2 class="mb-4 text-xl font-bold">Most played</h2>
+    @if (stats.topTracks.length) {
+      <app-track-list [tracks]="stats.topTracks" [context]="{ label: 'Most played' }" />
+    } @else {
+      <p class="text-subdued">No tracks yet.</p>
+    }
+  </section>
+} @else {
+  <app-page-status [error]="error()" />
+}

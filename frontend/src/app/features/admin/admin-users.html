@@ -1,0 +1,87 @@
+<div class="mb-4 flex min-h-8 flex-wrap items-center justify-between gap-3">
+  <h2 class="text-xl font-bold">
+    Users
+    @if (users.total() !== null) {
+      <span class="text-base font-normal text-subdued">({{ users.total() }})</span>
+    }
+  </h2>
+  <input
+    type="search"
+    [formControl]="search"
+    placeholder="Search name or email"
+    aria-label="Search users"
+    class="h-8 w-64 rounded-full bg-white/10 px-4 text-sm text-white outline-none placeholder:text-subdued focus:ring-1 focus:ring-white"
+  />
+</div>
+
+<div class="overflow-x-auto">
+  <table class="w-full min-w-[640px] text-left text-sm">
+    <thead class="border-b border-white/10 text-subdued">
+      <tr>
+        <th class="px-2 py-2 font-normal">User</th>
+        <th class="px-2 py-2 font-normal">Joined</th>
+        <th class="px-2 py-2 font-normal">Role</th>
+        <th class="px-2 py-2 font-normal">Status</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-white/5">
+      @for (user of users.items(); track user.id) {
+        @let me = user.id === auth.user()?.id;
+        <tr [class.opacity-60]="!user.enabled">
+          <td class="px-2 py-2">
+            <div class="flex items-center gap-3">
+              <app-cover-image class="size-10 shrink-0" [src]="user.avatarUrl" [round]="true" placeholder="person" [iconSize]="18" />
+              <div class="min-w-0">
+                <p class="truncate font-semibold">
+                  {{ user.username }}
+                  @if (me) {
+                    <span class="text-xs font-normal text-accent">(you)</span>
+                  }
+                </p>
+                <p class="truncate text-subdued">{{ user.email }}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-2 py-2 text-subdued">{{ joined(user) }}</td>
+          <td class="px-2 py-2">
+            <select
+              class="rounded bg-white/10 px-2 py-1.5 outline-none focus:ring-1 focus:ring-white disabled:opacity-50"
+              [attr.aria-label]="'Role of ' + user.username"
+              [value]="user.role"
+              [disabled]="me"
+              (change)="setRole(user, $any($event.target).value)"
+            >
+              <option value="USER" class="bg-elevated">User</option>
+              <option value="ADMIN" class="bg-elevated">Admin</option>
+            </select>
+          </td>
+          <td class="px-2 py-2">
+            <button
+              type="button"
+              class="rounded-full px-3 py-1 text-xs font-bold disabled:opacity-50"
+              [class]="user.enabled ? 'bg-accent/20 text-accent' : 'bg-danger/20 text-danger'"
+              [disabled]="me"
+              [title]="me ? 'You cannot disable your own account' : user.enabled ? 'Click to disable' : 'Click to enable'"
+              (click)="toggleEnabled(user)"
+            >
+              {{ user.enabled ? 'Active' : 'Disabled' }}
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (users.done() && !users.items().length) {
+  <p class="py-10 text-center text-subdued">No users found.</p>
+}
+@if (users.error(); as message) {
+  <app-page-status [error]="message" />
+} @else if (users.loading()) {
+  <app-page-status />
+} @else if (!users.done()) {
+  <div class="mt-6 flex justify-center">
+    <button type="button" class="btn-outline" (click)="users.loadMore()">Load more</button>
+  </div>
+}
