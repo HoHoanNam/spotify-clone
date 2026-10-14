@@ -2,7 +2,7 @@
   <h1 class="mb-6 text-3xl font-bold tracking-tight">{{ greeting }}</h1>
 
   @if (data(); as data) {
-    @if (!data.tracks.length && !data.albums.length && !data.artists.length) {
+    @if (isEmpty()) {
       <div class="py-20 text-center">
         <p class="text-2xl font-bold">No music yet</p>
         @if (auth.isAdmin()) {
@@ -14,69 +14,121 @@
       </div>
     }
 
-    <!-- Quick-play tiles, like Spotify's top grid -->
-    @if (data.tracks.length) {
+    <!-- Quick-access tiles, like Spotify's top grid -->
+    @if (tiles().length) {
       <div class="mb-10 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        @for (track of data.tracks; track track.id; let i = $index) {
-          @let playing = player.isCurrent(track.id) && player.isPlaying();
+        @for (tile of tiles(); track $index) {
+          @let playing = tilePlaying(tile);
           <div
             class="group flex h-14 cursor-pointer items-center gap-3 overflow-hidden rounded bg-white/10 pr-2 transition-colors hover:bg-white/20"
-            (click)="playTile(data.tracks, i)"
+            (click)="openTile(tile)"
           >
-            <app-cover-image
-              class="size-14 shrink-0 shadow-[0_8px_24px_rgb(0_0_0/0.5)]"
-              [src]="track.coverUrl"
-              [alt]="track.title"
-              [iconSize]="24"
-            />
-            <span class="flex-1 truncate font-bold" [class.text-accent]="player.isCurrent(track.id)">{{ track.title }}</span>
-            <app-play-button
-              class="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
-              [class.opacity-100]="playing"
-              [size]="32"
-              [playing]="playing"
-              [label]="'Play ' + track.title"
-              (pressed)="playTile(data.tracks, i)"
-            />
+            @switch (tile.kind) {
+              @case ('liked') {
+                <span class="flex size-14 shrink-0 items-center justify-center bg-linear-to-br from-[#450af5] to-[#c4efd9]">
+                  <app-icon name="heartFilled" [size]="22" />
+                </span>
+                <span class="flex-1 truncate font-bold">Liked Songs</span>
+              }
+              @case ('playlist') {
+                <app-playlist-cover class="size-14 shrink-0" [images]="tile.playlist.images" [iconSize]="24" />
+                <span class="flex-1 truncate font-bold">{{ tile.playlist.name }}</span>
+              }
+              @case ('track') {
+                <app-cover-image class="size-14 shrink-0" [src]="tile.track.coverUrl" [alt]="tile.track.title" [iconSize]="24" />
+                <span class="flex-1 truncate font-bold" [class.text-accent]="player.isCurrent(tile.track.id)">{{ tile.track.title }}</span>
+              }
+            }
+            @if (tile.kind !== 'liked') {
+              <app-play-button
+                class="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+                [class.opacity-100]="playing"
+                [size]="32"
+                [playing]="playing"
+                (pressed)="playTile(tile)"
+              />
+            }
           </div>
         }
       </div>
     }
 
-    @if (data.albums.length) {
+    @if (data.popular.length) {
       <section class="mb-8">
-        <h2 class="mb-2 text-2xl font-bold tracking-tight">Albums</h2>
-        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
-          @for (album of data.albums; track album.id) {
-            <app-media-card
-              [title]="album.title"
-              [subtitle]="subtitle(album)"
-              [imageUrl]="album.coverUrl"
-              [link]="['/album', album.id]"
-              [playable]="false"
-            />
-          }
-        </div>
+        <header class="mb-2 flex items-end justify-between gap-4">
+          <h2 class="text-2xl font-bold tracking-tight">Popular songs</h2>
+          <a routerLink="/section/popular" class="text-sm font-bold text-subdued hover:underline">Show all</a>
+        </header>
+        <app-track-list
+          [tracks]="data.popular"
+          [showHeader]="false"
+          [context]="{ label: 'Popular songs', link: ['/section/popular'] }"
+        />
       </section>
     }
 
+    @if (data.albums.length) {
+      <app-shelf heading="New releases" [showAll]="['/section/albums']" [singleRow]="true">
+        @for (album of data.albums; track album.id) {
+          <app-media-card
+            [title]="album.title"
+            [subtitle]="albumSubtitle(album)"
+            [imageUrl]="album.coverUrl"
+            [link]="['/album', album.id]"
+            [playing]="lists.isPlaying('album', album.id)"
+            (play)="lists.toggle('album', album.id)"
+          />
+        }
+      </app-shelf>
+    }
+
     @if (data.artists.length) {
-      <section class="mb-8">
-        <h2 class="mb-2 text-2xl font-bold tracking-tight">Artists</h2>
-        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
-          @for (artist of data.artists; track artist.id) {
-            <app-media-card
-              [title]="artist.name"
-              subtitle="Artist"
-              [imageUrl]="artist.imageUrl"
-              [link]="['/artist', artist.id]"
-              [round]="true"
-              placeholder="person"
-              [playable]="false"
-            />
-          }
-        </div>
-      </section>
+      <app-shelf heading="Artists" [showAll]="['/section/artists']" [singleRow]="true">
+        @for (artist of data.artists; track artist.id) {
+          <app-media-card
+            [title]="artist.name"
+            subtitle="Artist"
+            [imageUrl]="artist.imageUrl"
+            [link]="['/artist', artist.id]"
+            [round]="true"
+            placeholder="person"
+            [playing]="lists.isPlaying('artist', artist.id)"
+            (play)="lists.toggle('artist', artist.id)"
+          />
+        }
+      </app-shelf>
+    }
+
+    @if (data.recent.length) {
+      <app-shelf heading="Recently played" [showAll]="['/section/recent']" [singleRow]="true">
+        @for (track of data.recent; track track.id; let i = $index) {
+          <app-media-card
+            [title]="track.title"
+            [subtitle]="track.artists[0].name"
+            [imageUrl]="track.coverUrl"
+            [link]="track.album ? ['/album', track.album.id] : ['/artist', track.artists[0].id]"
+            placeholder="note"
+            [playing]="trackPlaying(track)"
+            (play)="playTile({ kind: 'track', track: track, index: i })"
+          />
+        }
+      </app-shelf>
+    }
+
+    @if (communityPlaylists().length) {
+      <app-shelf heading="Playlists from the community" [showAll]="['/section/playlists']" [singleRow]="true">
+        @for (playlist of communityPlaylists(); track playlist.id) {
+          <app-media-card
+            [title]="playlist.name"
+            [subtitle]="'By ' + playlist.owner.username"
+            [images]="playlist.images"
+            [link]="['/playlist', playlist.id]"
+            placeholder="note"
+            [playing]="lists.isPlaying('playlist', playlist.id)"
+            (play)="lists.toggle('playlist', playlist.id)"
+          />
+        }
+      </app-shelf>
     }
   } @else {
     <app-page-status [error]="error()" />
