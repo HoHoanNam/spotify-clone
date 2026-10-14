@@ -1,0 +1,78 @@
+@if (profile(); as profile) {
+  <header
+    class="flex flex-col gap-6 px-4 pt-16 pb-6 sm:flex-row sm:items-end sm:px-6"
+    [style.background]="'linear-gradient(' + color() + ', ' + color() + 'aa)'"
+  >
+    <app-cover-image
+      class="size-48 shrink-0 self-center shadow-[0_4px_60px_rgb(0_0_0/0.5)] sm:size-58 sm:self-auto"
+      [src]="profile.avatarUrl"
+      [alt]="profile.username"
+      [round]="true"
+      placeholder="person"
+      [iconSize]="80"
+    />
+    <div class="min-w-0">
+      <p class="text-sm font-medium">Profile</p>
+      <h1 class="my-2 text-5xl font-extrabold tracking-tight wrap-break-word sm:text-7xl xl:text-8xl">{{ profile.username }}</h1>
+      <p class="text-sm">
+        {{ profile.playlists.length }} Public {{ profile.playlists.length === 1 ? 'Playlist' : 'Playlists' }}
+        @if (isMe()) {
+          • {{ library.artists().length }} Following
+        }
+      </p>
+    </div>
+  </header>
+
+  <div class="bg-linear-to-b from-black/20 to-base to-[240px] px-4 pb-10 sm:px-6">
+    @if (isMe()) {
+      <div class="py-6">
+        <a routerLink="/settings" class="btn-outline">Edit profile</a>
+      </div>
+    } @else {
+      <div class="py-4"></div>
+    }
+
+    @if (profile.playlists.length) {
+      <section class="mb-8">
+        <h2 class="mb-2 text-2xl font-bold tracking-tight">Public Playlists</h2>
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (playlist of profile.playlists; track playlist.id) {
+            <app-media-card
+              [title]="playlist.name"
+              [subtitle]="playlist.trackCount + (playlist.trackCount === 1 ? ' song' : ' songs')"
+              [images]="playlist.images"
+              [link]="['/playlist', playlist.id]"
+              [playing]="lists.isPlaying('playlist', playlist.id)"
+              (play)="lists.toggle('playlist', playlist.id)"
+            />
+          }
+        </div>
+      </section>
+    } @else {
+      <p class="text-subdued">{{ isMe() ? "You don't have any public playlists yet." : 'No public playlists yet.' }}</p>
+    }
+
+    @if (isMe() && library.artists().length) {
+      <section class="mb-8">
+        <h2 class="mb-1 text-2xl font-bold tracking-tight">Following</h2>
+        <p class="mb-2 text-sm text-subdued">Only visible to you</p>
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (artist of library.artists(); track artist.id) {
+            <app-media-card
+              [title]="artist.name"
+              subtitle="Artist"
+              [imageUrl]="artist.imageUrl"
+              [link]="['/artist', artist.id]"
+              [round]="true"
+              placeholder="person"
+              [playing]="lists.isPlaying('artist', artist.id)"
+              (play)="lists.toggle('artist', artist.id)"
+            />
+          }
+        </div>
+      </section>
+    }
+  </div>
+} @else {
+  <app-page-status [error]="error()" />
+}
