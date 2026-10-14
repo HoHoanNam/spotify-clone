@@ -1,0 +1,68 @@
+<div class="px-4 pt-6 pb-10 sm:px-6">
+  @if (section(); as section) {
+    <h1 class="mb-6 text-3xl font-bold tracking-tight">{{ section.title }}</h1>
+
+    @switch (section.shape) {
+      @case ('tracks') {
+        <app-track-list [tracks]="tracks()" [context]="context()" />
+      }
+      @case ('albums') {
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (album of albums(); track album.id) {
+            <app-media-card
+              [title]="album.title"
+              [subtitle]="albumSubtitle(album)"
+              [imageUrl]="album.coverUrl"
+              [link]="['/album', album.id]"
+              [playing]="lists.isPlaying('album', album.id)"
+              (play)="lists.toggle('album', album.id)"
+            />
+          }
+        </div>
+      }
+      @case ('artists') {
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (artist of artists(); track artist.id) {
+            <app-media-card
+              [title]="artist.name"
+              subtitle="Artist"
+              [imageUrl]="artist.imageUrl"
+              [link]="['/artist', artist.id]"
+              [round]="true"
+              placeholder="person"
+              [playing]="lists.isPlaying('artist', artist.id)"
+              (play)="lists.toggle('artist', artist.id)"
+            />
+          }
+        </div>
+      }
+      @case ('playlists') {
+        <div class="-mx-3 grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))]">
+          @for (playlist of playlists(); track playlist.id) {
+            <app-media-card
+              [title]="playlist.name"
+              [subtitle]="'By ' + playlist.owner.username"
+              [images]="playlist.images"
+              [link]="['/playlist', playlist.id]"
+              [playing]="lists.isPlaying('playlist', playlist.id)"
+              (play)="lists.toggle('playlist', playlist.id)"
+            />
+          }
+        </div>
+      }
+    }
+
+    @if (list.done() && !list.items().length) {
+      <p class="py-20 text-center text-subdued">Nothing here yet.</p>
+    }
+    @if (list.error(); as message) {
+      <app-page-status [error]="message" />
+    } @else if (list.loading()) {
+      <app-page-status />
+    } @else if (!list.done()) {
+      <div (appInfiniteScroll)="list.loadMore()"></div>
+    }
+  } @else {
+    <app-page-status error="This section does not exist." />
+  }
+</div>

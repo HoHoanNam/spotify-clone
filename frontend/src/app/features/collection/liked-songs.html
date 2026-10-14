@@ -1,0 +1,47 @@
+<header class="flex flex-col gap-6 bg-linear-to-b from-[#5038a0] to-[#5038a0aa] px-4 pt-16 pb-6 sm:flex-row sm:items-end sm:px-6">
+  <div
+    class="flex size-48 shrink-0 items-center justify-center self-center rounded bg-linear-to-br from-[#450af5] to-[#c4efd9] shadow-[0_4px_60px_rgb(0_0_0/0.5)] sm:size-58 sm:self-auto"
+  >
+    <app-icon name="heartFilled" [size]="80" />
+  </div>
+  <div class="min-w-0">
+    <p class="text-sm font-medium">Playlist</p>
+    <h1 class="my-2 text-5xl font-extrabold tracking-tight sm:text-7xl xl:text-8xl">Liked Songs</h1>
+    <p class="text-sm">
+      <a [routerLink]="['/user', auth.user()?.id]" class="font-bold hover:underline">{{ auth.user()?.username }}</a>
+      • {{ library.likedCount() }} {{ library.likedCount() === 1 ? 'song' : 'songs' }}
+    </p>
+  </div>
+</header>
+
+<div class="bg-linear-to-b from-[#5038a0]/30 to-base to-[240px] px-4 pb-10 sm:px-6">
+  <div class="py-6">
+    @if (tracks().length) {
+      <app-play-button
+        [size]="56"
+        [playing]="player.isCurrentList(tracks()) && player.isPlaying()"
+        label="Play Liked Songs"
+        (pressed)="player.toggleTracks(tracks(), 0, context)"
+      />
+    }
+  </div>
+
+  @if (tracks().length) {
+    <app-track-list [tracks]="tracks()" [addedAt]="addedAt()" [context]="context" />
+  } @else if (list.done()) {
+    <div class="flex flex-col items-center py-16 text-center">
+      <app-icon name="heart" [size]="56" class="text-subdued" />
+      <p class="mt-6 text-3xl font-bold">Songs you like will appear here</p>
+      <p class="mt-3 text-subdued">Save songs by tapping the heart icon.</p>
+      <a routerLink="/search" class="btn-white mt-8 px-8 py-3 text-base">Find songs</a>
+    </div>
+  }
+
+  @if (list.error(); as message) {
+    <app-page-status [error]="message" />
+  } @else if (list.loading()) {
+    <app-page-status />
+  } @else if (!list.done()) {
+    <div (appInfiniteScroll)="list.loadMore()"></div>
+  }
+</div>
