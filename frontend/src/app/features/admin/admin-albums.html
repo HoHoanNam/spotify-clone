@@ -1,0 +1,56 @@
+@if (data(); as data) {
+  <div class="grid gap-10 xl:grid-cols-[380px_1fr]">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4 self-start rounded-lg bg-elevated p-6" novalidate>
+      <h2 class="text-xl font-bold">New album</h2>
+      @if (!data.artists.length) {
+        <p class="text-sm text-subdued">Create an artist first.</p>
+      }
+      <label class="block">
+        <span class="mb-2 block text-sm font-bold">Title</span>
+        <input formControlName="title" class="field" [class.invalid]="invalid('title')" />
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm font-bold">Artist</span>
+        <select formControlName="artistId" class="field" [class.invalid]="invalid('artistId')">
+          <option [ngValue]="null" disabled>Choose an artist</option>
+          @for (artist of data.artists; track artist.id) {
+            <option [ngValue]="artist.id">{{ artist.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="block">
+        <span class="mb-2 block text-sm font-bold">Release date <span class="font-normal text-subdued">(optional)</span></span>
+        <input type="date" formControlName="releaseDate" class="field [color-scheme:dark]" />
+      </label>
+      <app-file-field label="Cover" accept=".jpg,.jpeg,.png,.webp" hint="JPG, PNG or WebP" [(file)]="cover" />
+
+      @if (progress() !== null) {
+        <div class="h-1 overflow-hidden rounded-full bg-white/10"><div class="h-full bg-accent" [style.width.%]="progress()"></div></div>
+      }
+      <button type="submit" class="btn-primary w-full" [disabled]="progress() !== null">Create album</button>
+    </form>
+
+    <section>
+      <h2 class="mb-4 text-xl font-bold">Albums</h2>
+      @if (!data.albums.length) {
+        <p class="text-subdued">No albums yet.</p>
+      }
+      <ul class="divide-y divide-white/5">
+        @for (album of data.albums; track album.id) {
+          <li class="flex items-center gap-4 py-2">
+            <app-cover-image class="size-12 shrink-0 rounded" [src]="album.coverUrl" placeholder="album" [iconSize]="20" />
+            <div class="min-w-0 flex-1">
+              <a [routerLink]="['/album', album.id]" class="block truncate font-semibold hover:underline">{{ album.title }}</a>
+              <p class="truncate text-sm text-subdued">{{ album.artist.name }}{{ album.releaseDate ? ' • ' + album.releaseDate.slice(0, 4) : '' }}</p>
+            </div>
+            <button type="button" class="btn-icon size-9 hover:bg-white/10 hover:text-danger" [attr.aria-label]="'Delete ' + album.title" (click)="remove(album)">
+              <app-icon name="trash" [size]="18" />
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+} @else {
+  <app-page-status [error]="error()" />
+}
