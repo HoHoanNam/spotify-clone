@@ -1,0 +1,18 @@
+@if (confirms.pending(); as dialog) {
+  <app-modal [heading]="dialog.title" width="max-w-[420px]" (closed)="confirms.answer(false)">
+    <p class="text-sm text-subdued">{{ dialog.message }}</p>
+    <div class="mt-8 flex justify-end gap-3">
+      <button type="button" class="rounded-full px-5 py-3 font-bold hover:scale-[1.03]" (click)="confirms.answer(false)">
+        Cancel
+      </button>
+      <button
+        type="button"
+        autofocus
+        [class]="dialog.danger ? 'btn-danger' : 'btn-primary'"
+        (click)="confirms.answer(true)"
+      >
+        {{ dialog.confirmLabel ?? 'OK' }}
+      </button>
+    </div>
+  </app-modal>
+}

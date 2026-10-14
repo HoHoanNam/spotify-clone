@@ -1,0 +1,18 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" (mousedown)="closed.emit()">
+  <section
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="heading()"
+    class="max-h-full w-full overflow-y-auto rounded-lg bg-highlight p-6 shadow-[0_16px_24px_rgb(0_0_0/0.3)]"
+    [class]="width()"
+    (mousedown)="$event.stopPropagation()"
+  >
+    <header class="mb-5 flex items-center justify-between gap-4">
+      <h2 class="text-2xl font-bold">{{ heading() }}</h2>
+      <button type="button" data-close class="btn-icon size-8 hover:bg-white/10" aria-label="Close" (click)="closed.emit()">
+        <app-icon name="close" [size]="18" />
+      </button>
+    </header>
+    <ng-content />
+  </section>
+</div>

@@ -1,0 +1,63 @@
+@if (menus.menu(); as menu) {
+  <div
+    #panel
+    role="menu"
+    tabindex="-1"
+    class="fixed z-50 w-64 rounded bg-highlight p-1 text-sm shadow-[0_16px_24px_rgb(0_0_0/0.3)] outline-none"
+    [style.left.px]="left()"
+    [style.top.px]="top()"
+    [style.visibility]="placed() === menu ? 'visible' : 'hidden'"
+    (contextmenu)="$event.preventDefault()"
+  >
+    @for (item of menu.items; track $index; let i = $index) {
+      @if (item.separator) {
+        <div class="my-1 border-t border-white/10" role="separator"></div>
+      }
+      <div class="relative" (mouseenter)="openChild.set(item.children ? i : null)">
+        <button
+          type="button"
+          role="menuitem"
+          class="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
+          [class.text-danger]="item.danger"
+          [attr.aria-haspopup]="item.children ? 'menu' : null"
+          [attr.aria-expanded]="item.children ? openChild() === i : null"
+          (click)="item.children ? openChild.set(i) : run(item)"
+        >
+          @if (item.icon) {
+            <app-icon [name]="item.icon" [size]="16" class="text-subdued" />
+          }
+          <span class="flex-1 truncate">{{ item.label }}</span>
+          @if (item.children) {
+            <app-icon name="chevronRight" [size]="16" />
+          }
+        </button>
+
+        @if (item.children && openChild() === i) {
+          <div
+            role="menu"
+            class="absolute top-0 max-h-80 w-64 overflow-y-auto rounded bg-highlight p-1 shadow-[0_16px_24px_rgb(0_0_0/0.3)]"
+            [class.left-full]="!childLeftSide()"
+            [class.right-full]="childLeftSide()"
+          >
+            @for (child of item.children; track $index) {
+              @if (child.separator) {
+                <div class="my-1 border-t border-white/10" role="separator"></div>
+              }
+              <button
+                type="button"
+                role="menuitem"
+                class="flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none"
+                (click)="run(child)"
+              >
+                @if (child.icon) {
+                  <app-icon [name]="child.icon" [size]="16" class="text-subdued" />
+                }
+                <span class="flex-1 truncate">{{ child.label }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
