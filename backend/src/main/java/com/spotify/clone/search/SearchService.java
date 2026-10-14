@@ -9,6 +9,8 @@ import com.spotify.clone.album.AlbumRepository;
 import com.spotify.clone.album.dto.AlbumSummary;
 import com.spotify.clone.artist.ArtistRepository;
 import com.spotify.clone.artist.dto.ArtistSummary;
+import com.spotify.clone.playlist.PlaylistRepository;
+import com.spotify.clone.playlist.dto.PlaylistSummary;
 import com.spotify.clone.search.dto.SearchResponse;
 import com.spotify.clone.track.TrackRepository;
 import com.spotify.clone.track.dto.TrackResponse;
@@ -24,6 +26,7 @@ public class SearchService {
   private final TrackRepository trackRepository;
   private final AlbumRepository albumRepository;
   private final ArtistRepository artistRepository;
+  private final PlaylistRepository playlistRepository;
 
   @Transactional(readOnly = true)
   public SearchResponse search(String q) {
@@ -31,6 +34,7 @@ public class SearchService {
     return new SearchResponse(
         trackRepository.findByTitleContainingIgnoreCase(term, TOP_10).map(TrackResponse::from).getContent(),
         albumRepository.findByTitleContainingIgnoreCase(term, TOP_10).map(AlbumSummary::from).getContent(),
-        artistRepository.findByNameContainingIgnoreCase(term, TOP_10).map(ArtistSummary::from).getContent());
+        artistRepository.findByNameContainingIgnoreCase(term, TOP_10).map(ArtistSummary::from).getContent(),
+        playlistRepository.searchPublic(term, TOP_10).map(PlaylistSummary::from).getContent());
   }
 }
