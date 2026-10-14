@@ -15,10 +15,18 @@ public interface TrackRepository extends JpaRepository<Track, Long> {
   @Query("select t from Track t join t.artists a where a.id = :artistId order by t.playCount desc")
   List<Track> findTopByArtist(Long artistId, Pageable pageable);   // gọi với PageRequest.of(0, 10)
 
+  /** Tracks where the artist is listed after the main artist (position > 0), newest first. */
+  @Query("select t from Track t join t.artists a where a.id = :artistId and index(a) > 0 order by t.createdAt desc")
+  List<Track> findFeaturing(Long artistId, Pageable pageable);
+
   @Query("select count(t) > 0 from Track t join t.artists a where a.id = :artistId")
   boolean existsByArtist(Long artistId);
 
-  @Modifying
+  @Query("select coalesce(sum(t.playCount), 0) from Track t")
+  long sumPlayCount();
+
+  /** clearAutomatically: entities loaded earlier in the transaction would still show the old count. */
+  @Modifying(clearAutomatically = true)
   @Query("update Track t set t.playCount = t.playCount + 1 where t.id = :id")
   int incrementPlayCount(Long id);
 }

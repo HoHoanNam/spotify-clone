@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.spotify.clone.album.Album;
 import com.spotify.clone.album.AlbumRepository;
@@ -17,6 +18,7 @@ import com.spotify.clone.artist.ArtistRepository;
 import com.spotify.clone.common.exception.BadRequestException;
 import com.spotify.clone.common.exception.ResourceNotFoundException;
 import com.spotify.clone.common.web.PageResponse;
+import com.spotify.clone.library.LibraryService;
 import com.spotify.clone.storage.MediaFolder;
 import com.spotify.clone.storage.MediaUploadService;
 import com.spotify.clone.storage.MediaUploadService.StoredAudio;
@@ -34,10 +36,14 @@ public class TrackService {
   private final ArtistRepository artistRepository;
   private final AlbumRepository albumRepository;
   private final MediaUploadService mediaUploadService;
+  private final LibraryService libraryService;
 
   @Transactional(readOnly = true)
-  public PageResponse<TrackResponse> list(Pageable pageable) {
-    return PageResponse.from(trackRepository.findAll(pageable).map(TrackResponse::from));
+  public PageResponse<TrackResponse> list(String q, Pageable pageable) {
+    var page = StringUtils.hasText(q)
+        ? trackRepository.findByTitleContainingIgnoreCase(q.strip(), pageable)
+        : trackRepository.findAll(pageable);
+    return PageResponse.from(page.map(TrackResponse::from));
   }
 
   @Transactional(readOnly = true)
@@ -99,10 +105,11 @@ public class TrackService {
   }
 
   @Transactional
-  public void recordPlay(Long id) {
+  public void recordPlay(Long id, Long userId) {
     if (trackRepository.incrementPlayCount(id) == 0) {
       throw new ResourceNotFoundException("Track not found");
     }
+    libraryService.recordListen(userId, id);
   }
 
   /** findAllById does not keep the requested order, so rebuild it from the ids. */
