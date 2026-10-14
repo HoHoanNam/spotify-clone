@@ -8,7 +8,10 @@
     @if (showAlbum()) {
       <span class="hidden md:block">Album</span>
     }
-    <span class="flex justify-end pr-2" aria-label="Duration"><app-icon name="clock" [size]="16" /></span>
+    @if (addedAt()) {
+      <span class="hidden lg:block">Date added</span>
+    }
+    <span class="flex justify-end pr-9" aria-label="Duration"><app-icon name="clock" [size]="16" /></span>
   </div>
 }
 
@@ -16,10 +19,21 @@
   @for (track of tracks(); track track.id; let i = $index) {
     @let current = player.isCurrent(track.id);
     @let playing = current && player.isPlaying();
+    @let liked = library.isLiked(track.id);
+    @let from = dragFrom();
     <li
-      class="group grid h-14 cursor-default items-center gap-4 rounded px-4 text-sm text-subdued hover:bg-white/10"
+      class="group grid h-14 cursor-default items-center gap-4 rounded border-y-2 border-transparent px-4 text-sm text-subdued hover:bg-white/10 focus-within:bg-white/10"
       [style.grid-template-columns]="columns()"
+      [class.border-t-accent]="dropAt() === i && from !== null && from > i"
+      [class.border-b-accent]="dropAt() === i && from !== null && from < i"
+      [class.opacity-50]="from === i"
+      draggable="true"
       (dblclick)="play(i)"
+      (contextmenu)="openMenu($event, track)"
+      (dragstart)="onDragStart($event, track, i)"
+      (dragover)="onDragOver($event, i)"
+      (drop)="onDrop($event, i)"
+      (dragend)="onDragEnd()"
     >
       <span class="flex justify-end text-base tabular-nums">
         @if (playing) {
@@ -55,7 +69,27 @@
         </span>
       }
 
-      <span class="pr-2 text-right tabular-nums">{{ track.durationSec | duration }}</span>
+      @if (addedAt(); as dates) {
+        <span class="hidden truncate lg:block">{{ dates[i] | relativeTime }}</span>
+      }
+
+      <span class="flex items-center justify-end gap-3">
+        <app-like-button
+          [track]="track"
+          class="group-hover:opacity-100 group-focus-within:opacity-100"
+          [class.opacity-0]="!liked"
+        />
+        <span class="w-10 text-right tabular-nums">{{ track.durationSec | duration }}</span>
+        <button
+          #more
+          type="button"
+          class="btn-icon size-5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 max-md:opacity-100"
+          [attr.aria-label]="'More options for ' + track.title"
+          (click)="openMenu($event, track, more)"
+        >
+          <app-icon name="more" [size]="18" />
+        </button>
+      </span>
     </li>
   }
 </ol>
