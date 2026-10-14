@@ -54,6 +54,20 @@ body {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-8 py-3 font-bold text-black transition-transform hover:scale-[1.03] hover:bg-accent-hover active:scale-100 disabled:pointer-events-none disabled:opacity-50;
   }
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-danger px-8 py-3 font-bold text-black transition-transform hover:scale-[1.03] active:scale-100 disabled:pointer-events-none disabled:opacity-50;
+  }
+  /* White pill (Spotify's secondary call to action: "Browse", "Follow"...) */
+  .btn-white {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-white px-4 py-1.5 text-sm font-bold text-black transition-transform hover:scale-[1.04] active:scale-100 disabled:pointer-events-none disabled:opacity-50;
+  }
+  /* Filter chips (search tabs, library filters, admin tabs) */
+  .chip {
+    @apply inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-sm font-medium whitespace-nowrap text-white transition-colors hover:bg-white/20;
+  }
+  .chip.active {
+    @apply bg-white text-black hover:bg-white;
+  }
   .btn-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-full border border-muted px-4 py-1.5 text-sm font-bold text-white transition-transform hover:scale-[1.03] hover:border-white active:scale-100 disabled:pointer-events-none disabled:opacity-50;
   }
