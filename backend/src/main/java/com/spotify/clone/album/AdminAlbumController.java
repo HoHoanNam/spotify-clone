@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,6 +29,11 @@ public class AdminAlbumController {
   @ResponseStatus(HttpStatus.CREATED)
   AlbumSummary create(@Valid @ModelAttribute AlbumForm form) {
     return albumService.create(form);
+  }
+
+  @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  AlbumSummary update(@PathVariable Long id, @Valid @ModelAttribute AlbumForm form) {
+    return albumService.update(id, form);
   }
 
   /** Tracks of the album are kept as singles. */

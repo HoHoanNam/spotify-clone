@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.spotify.clone.album.dto.AlbumDetail;
 import com.spotify.clone.album.dto.AlbumForm;
@@ -31,8 +32,11 @@ public class AlbumService {
   private final MediaUploadService mediaUploadService;
 
   @Transactional(readOnly = true)
-  public PageResponse<AlbumSummary> list(Pageable pageable) {
-    return PageResponse.from(albumRepository.findAll(pageable).map(AlbumSummary::from));
+  public PageResponse<AlbumSummary> list(String q, Pageable pageable) {
+    var page = StringUtils.hasText(q)
+        ? albumRepository.findByTitleContainingIgnoreCase(q.strip(), pageable)
+        : albumRepository.findAll(pageable);
+    return PageResponse.from(page.map(AlbumSummary::from));
   }
 
   @Transactional(readOnly = true)
@@ -51,6 +55,23 @@ public class AlbumService {
     album.setReleaseDate(form.releaseDate());
     album.setCoverPath(mediaUploadService.storeImage(form.cover(), MediaFolder.ALBUM_COVERS));
     return AlbumSummary.from(albumRepository.save(album));
+  }
+
+  @Transactional
+  public AlbumSummary update(Long id, AlbumForm form) {
+    Album album = find(id);
+    Artist artist = artistRepository.findById(form.artistId())
+        .orElseThrow(() -> new BadRequestException("Artist not found: " + form.artistId()));
+    album.setTitle(form.title().strip());
+    album.setArtist(artist);
+    album.setReleaseDate(form.releaseDate());
+
+    String newCover = mediaUploadService.storeImage(form.cover(), MediaFolder.ALBUM_COVERS);
+    if (newCover != null || Boolean.TRUE.equals(form.removeCover())) {
+      mediaUploadService.deleteAfterCommit(album.getCoverPath());
+      album.setCoverPath(newCover);
+    }
+    return AlbumSummary.from(album);
   }
 
   /** Tracks of the album become singles (FK ON DELETE SET NULL). */

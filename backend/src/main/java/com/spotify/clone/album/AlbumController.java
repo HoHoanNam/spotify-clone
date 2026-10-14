@@ -6,6 +6,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.spotify.clone.album.dto.AlbumDetail;
@@ -22,9 +23,9 @@ public class AlbumController {
   private final AlbumService albumService;
 
   @GetMapping
-  PageResponse<AlbumSummary> list(
+  PageResponse<AlbumSummary> list(@RequestParam(required = false) String q,
       @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    return albumService.list(pageable);
+    return albumService.list(q, pageable);
   }
 
   @GetMapping("/{id}")

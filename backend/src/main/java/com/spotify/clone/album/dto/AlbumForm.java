@@ -9,9 +9,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-/** multipart/form-data: title, artistId, releaseDate? (yyyy-MM-dd), cover? */
+/**
+ * multipart/form-data: title, artistId, releaseDate? (yyyy-MM-dd), cover?
+ * Used by POST and PUT; on PUT the cover is replaced only when sent, removeCover=true drops it.
+ */
 public record AlbumForm(
     @NotBlank @Size(max = 200) String title,
     @NotNull Long artistId,
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate releaseDate,
-    MultipartFile cover) {}
+    MultipartFile cover,
+    Boolean removeCover) {}
