@@ -1,0 +1,194 @@
+@if (data(); as data) {
+  <div class="grid gap-10 xl:grid-cols-[380px_1fr]">
+    <!-- Spacing scale: gap-5 between fields · mb-2 label → control · gap-4 between columns -->
+    <form
+      #formEl
+      [formGroup]="form"
+      (ngSubmit)="submit()"
+      class="flex flex-col gap-5 self-start rounded-lg bg-elevated p-6"
+      novalidate
+    >
+      <header>
+        <div class="flex min-h-8 items-center justify-between gap-4">
+          <h2 class="text-xl font-bold">{{ editing() ? 'Edit track' : 'Upload track' }}</h2>
+          @if (editing()) {
+            <button type="button" class="btn-outline" (click)="cancelEdit()">Cancel</button>
+          }
+        </div>
+        @if (editing(); as track) {
+          <p class="mt-2 text-sm text-subdued">
+            Editing “{{ track.title }}”. Leave the file fields empty to keep the current files.
+          </p>
+        } @else if (!data.artists.length) {
+          <p class="mt-2 text-sm text-subdued">Create an artist first.</p>
+        }
+      </header>
+
+      <label class="block">
+        <span class="mb-2 block text-sm font-bold">Title</span>
+        <input formControlName="title" class="field" [class.invalid]="invalid('title')" />
+      </label>
+
+      <!-- Ordered artist picker: the first chip is the main artist -->
+      <div>
+        <span class="mb-2 block text-sm font-bold">Artists</span>
+        @if (selectedArtists().length) {
+          <div class="mb-2 flex flex-wrap gap-2">
+            @for (artist of selectedArtists(); track artist.id; let first = $first) {
+              <span
+                class="inline-flex items-center gap-1 rounded-full bg-white/10 py-1 pr-1 pl-3 text-sm"
+              >
+                {{ artist.name }}
+                @if (first) {
+                  <span class="text-xs text-accent">main</span>
+                }
+                <button
+                  type="button"
+                  class="btn-icon size-6"
+                  [attr.aria-label]="'Remove ' + artist.name"
+                  (click)="removeArtist(artist.id)"
+                >
+                  <app-icon name="close" [size]="14" />
+                </button>
+              </span>
+            }
+          </div>
+        }
+        <select
+          class="field"
+          [class.invalid]="submitted() && !selectedArtists().length"
+          (change)="
+            addArtist($any($event.target).value, data.artists); $any($event.target).value = ''
+          "
+        >
+          <option value="">
+            {{ selectedArtists().length ? 'Add a featured artist' : 'Choose an artist' }}
+          </option>
+          @for (artist of data.artists; track artist.id) {
+            @if (!artistIds().includes(artist.id)) {
+              <option [value]="artist.id">{{ artist.name }}</option>
+            }
+          }
+        </select>
+      </div>
+
+      <div class="grid grid-cols-[1fr_96px] gap-4">
+        <label class="block min-w-0">
+          <span class="mb-2 block text-sm font-bold">
+            Album <span class="font-normal text-subdued">(optional)</span>
+          </span>
+          <select formControlName="albumId" class="field">
+            <option [ngValue]="null">Single (no album)</option>
+            @for (album of data.albums; track album.id) {
+              <option [ngValue]="album.id">{{ album.title }} — {{ album.artist.name }}</option>
+            }
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-2 block text-sm font-bold">No.</span>
+          <input type="number" min="1" formControlName="trackNumber" class="field" />
+        </label>
+      </div>
+
+      <app-file-field
+        [label]="editing() ? 'Replace audio' : 'Audio'"
+        accept=".mp3,.m4a,.ogg"
+        [hint]="editing() ? 'Keep the current audio' : 'MP3, M4A or OGG · max 50 MB'"
+        [required]="!editing()"
+        [invalid]="!editing() && submitted() && !audio()"
+        [(file)]="audio"
+      />
+
+      <!-- The "remove cover" option belongs to the cover field, so it sits inside the same group -->
+      <div>
+        <app-file-field
+          [label]="editing() ? 'Replace cover' : 'Cover'"
+          accept=".jpg,.jpeg,.png,.webp"
+          [hint]="editing() ? 'Keep the current cover' : 'Defaults to the album cover'"
+          [(file)]="cover"
+        />
+        @if (editing() && !cover()) {
+          <label class="mt-2 flex items-center gap-2 text-sm text-subdued">
+            <input
+              type="checkbox"
+              class="size-4 accent-accent"
+              [checked]="removeCover()"
+              (change)="removeCover.set($any($event.target).checked)"
+            />
+            Remove the track's own cover (use the album cover)
+          </label>
+        }
+      </div>
+
+      <footer class="flex flex-col gap-3 pt-1">
+        @if (progress() !== null) {
+          <div class="flex items-center gap-3 text-xs text-subdued">
+            <div class="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+              <div class="h-full bg-accent" [style.width.%]="progress()"></div>
+            </div>
+            {{ progress() }}%
+          </div>
+        }
+        <button type="submit" class="btn-primary w-full" [disabled]="progress() !== null">
+          {{ editing() ? 'Save changes' : 'Upload' }}
+        </button>
+      </footer>
+    </form>
+
+    <!-- xl:pt-6 lines the heading up with the form heading (the form card has p-6) -->
+    <section class="min-w-0 xl:pt-6">
+      <h2 class="mb-4 flex min-h-8 items-center text-xl font-bold">Tracks</h2>
+      @if (!data.tracks.length) {
+        <p class="text-subdued">No tracks yet.</p>
+      }
+      <ul class="divide-y divide-white/5">
+        @for (track of data.tracks; track track.id; let i = $index) {
+          <li
+            class="flex items-center gap-4 rounded px-2 py-2"
+            [class.bg-highlight]="editing()?.id === track.id"
+          >
+            <button
+              type="button"
+              class="relative size-12 shrink-0"
+              [attr.aria-label]="'Play ' + track.title"
+              (click)="player.playTracks(data.tracks, i)"
+            >
+              <app-cover-image class="size-12 rounded" [src]="track.coverUrl" [iconSize]="20" />
+            </button>
+            <div class="min-w-0 flex-1">
+              <p class="truncate font-semibold" [class.text-accent]="player.isCurrent(track.id)">
+                {{ track.title }}
+              </p>
+              <p class="truncate text-sm text-subdued">
+                <app-artist-links [artists]="track.artists" />{{
+                  track.album ? ' • ' + track.album.title : ''
+                }}
+              </p>
+            </div>
+            <span class="text-sm text-subdued tabular-nums">{{ track.durationSec | duration }}</span>
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                class="btn-icon size-9 hover:bg-white/10"
+                [attr.aria-label]="'Edit ' + track.title"
+                (click)="startEdit(track)"
+              >
+                <app-icon name="edit" [size]="18" />
+              </button>
+              <button
+                type="button"
+                class="btn-icon size-9 hover:bg-white/10 hover:text-danger"
+                [attr.aria-label]="'Delete ' + track.title"
+                (click)="remove(track)"
+              >
+                <app-icon name="trash" [size]="18" />
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+} @else {
+  <app-page-status [error]="error()" />
+}
