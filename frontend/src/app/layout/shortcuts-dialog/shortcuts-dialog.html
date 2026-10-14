@@ -1,0 +1,23 @@
+@if (layout.shortcutsOpen()) {
+  <app-modal heading="Keyboard shortcuts" (closed)="layout.shortcutsOpen.set(false)">
+    <div class="grid gap-8 sm:grid-cols-2">
+      @for (group of groups; track group.title) {
+        <section>
+          <h3 class="mb-3 font-bold">{{ group.title }}</h3>
+          <dl class="space-y-2 text-sm">
+            @for (item of group.items; track item.label) {
+              <div class="flex items-center justify-between gap-4">
+                <dt class="text-subdued">{{ item.label }}</dt>
+                <dd class="flex shrink-0 gap-1">
+                  @for (key of item.keys; track key) {
+                    <kbd class="min-w-7 rounded bg-white/10 px-2 py-0.5 text-center font-sans text-xs">{{ key }}</kbd>
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+        </section>
+      }
+    </div>
+  </app-modal>
+}

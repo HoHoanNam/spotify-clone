@@ -11,6 +11,7 @@
         }
         <p class="truncate text-xs text-subdued"><app-artist-links [artists]="track.artists" /></p>
       </div>
+      <app-like-button [track]="track" class="ml-2 shrink-0" />
     }
   </div>
 
@@ -86,8 +87,22 @@
     </div>
   </div>
 
-  <!-- Volume -->
+  <!-- Queue + volume -->
   <div class="flex items-center justify-end gap-2 max-md:hidden">
+    <button
+      type="button"
+      class="btn-icon relative size-8"
+      [class.text-accent]="layout.queueOpen()"
+      [attr.aria-pressed]="layout.queueOpen()"
+      aria-label="Queue"
+      title="Queue"
+      (click)="layout.toggleQueue()"
+    >
+      <app-icon name="queue" [size]="18" />
+      @if (layout.queueOpen()) {
+        <span class="absolute bottom-0 size-1 rounded-full bg-accent"></span>
+      }
+    </button>
     <button
       type="button"
       class="btn-icon size-8"

@@ -2,6 +2,14 @@
   <a routerLink="/" class="flex size-12 shrink-0 items-center justify-center text-white" aria-label="Home">
     <app-icon name="logo" [size]="32" />
   </a>
+  <div class="hidden items-center gap-2 lg:flex">
+    <button type="button" class="flex size-8 items-center justify-center rounded-full bg-black/70 text-subdued hover:text-white" aria-label="Go back" (click)="location.back()">
+      <app-icon name="chevronLeft" [size]="22" />
+    </button>
+    <button type="button" class="flex size-8 items-center justify-center rounded-full bg-black/70 text-subdued hover:text-white" aria-label="Go forward" (click)="location.forward()">
+      <app-icon name="chevronRight" [size]="22" />
+    </button>
+  </div>
 
   <div class="mx-auto flex w-full max-w-[540px] items-center gap-2">
     <a
@@ -19,6 +27,7 @@
       <app-icon name="search" class="group-focus-within:text-white" />
       <input
         #searchInput
+        id="global-search"
         type="search"
         [formControl]="query"
         placeholder="What do you want to play?"
@@ -42,9 +51,13 @@
       [attr.aria-expanded]="menuOpen()"
       (click)="menuOpen.set(!menuOpen()); $event.stopPropagation()"
     >
-      <span class="flex size-8 items-center justify-center rounded-full bg-[#f573a0] font-bold text-black">
-        {{ initial() }}
-      </span>
+      @if (auth.user()?.avatarUrl; as avatar) {
+        <img [src]="avatar" alt="" class="size-8 rounded-full object-cover" />
+      } @else {
+        <span class="flex size-8 items-center justify-center rounded-full bg-[#f573a0] font-bold text-black">
+          {{ initial() }}
+        </span>
+      }
     </button>
 
     @if (menuOpen()) {
@@ -57,6 +70,30 @@
           <p class="truncate font-semibold">{{ auth.user()?.username }}</p>
           <p class="truncate text-subdued">{{ auth.user()?.email }}</p>
         </div>
+        <a
+          role="menuitem"
+          [routerLink]="['/user', auth.user()?.id]"
+          class="flex items-center gap-3 rounded-sm px-3 py-3 hover:bg-white/10"
+          (click)="menuOpen.set(false)"
+        >
+          <app-icon name="person" [size]="16" /> Profile
+        </a>
+        <a
+          role="menuitem"
+          routerLink="/settings"
+          class="flex items-center gap-3 rounded-sm px-3 py-3 hover:bg-white/10"
+          (click)="menuOpen.set(false)"
+        >
+          <app-icon name="settings" [size]="16" /> Settings
+        </a>
+        <button
+          role="menuitem"
+          type="button"
+          class="flex w-full items-center gap-3 rounded-sm px-3 py-3 hover:bg-white/10"
+          (click)="menuOpen.set(false); layout.shortcutsOpen.set(true)"
+        >
+          <app-icon name="keyboard" [size]="16" /> Keyboard shortcuts
+        </button>
         @if (auth.isAdmin()) {
           <a
             role="menuitem"
@@ -70,7 +107,7 @@
         <button
           role="menuitem"
           type="button"
-          class="flex w-full items-center gap-3 rounded-sm px-3 py-3 hover:bg-white/10"
+          class="flex w-full items-center gap-3 rounded-sm border-t border-white/10 px-3 py-3 hover:bg-white/10"
           (click)="logout()"
         >
           <app-icon name="logout" [size]="16" /> Log out

@@ -1,17 +1,42 @@
-<div class="grid h-dvh grid-rows-[auto_1fr_auto] bg-black">
+<div class="grid h-dvh grid-rows-[auto_1fr_auto_auto] bg-black">
   <app-topbar />
 
-  <div class="grid min-h-0 gap-2 px-2 md:grid-cols-[280px_1fr] xl:grid-cols-[340px_1fr]">
+  <div
+    class="grid min-h-0 gap-2 px-2"
+    [class]="
+      layout.queueOpen()
+        ? 'md:grid-cols-[280px_1fr] lg:grid-cols-[280px_1fr_300px] xl:grid-cols-[340px_1fr_340px]'
+        : 'md:grid-cols-[280px_1fr] xl:grid-cols-[340px_1fr]'
+    "
+  >
     <app-sidebar class="hidden min-h-0 md:block" />
-    <main #main class="relative min-h-0 overflow-y-auto rounded-lg bg-base">
+    <main #main class="relative min-h-0 overflow-y-auto rounded-lg bg-base" (scroll)="onMainScroll()">
       <router-outlet />
     </main>
+    @if (layout.queueOpen()) {
+      <app-queue-panel class="hidden min-h-0 lg:block" />
+    }
   </div>
 
   <app-player-bar />
+
+  <!-- Phones: the sidebar is hidden, so Home / Search / Library move to a tab bar -->
+  <nav class="grid grid-cols-3 bg-linear-to-t from-black to-black/80 pt-2 pb-3 md:hidden" aria-label="Main">
+    @for (tab of tabs; track tab.link) {
+      <a
+        [routerLink]="tab.link"
+        routerLinkActive="text-white"
+        [routerLinkActiveOptions]="{ exact: tab.exact }"
+        class="flex flex-col items-center gap-1 text-xs text-subdued"
+      >
+        <app-icon [name]="tab.icon" />
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
 </div>
 
-<div class="pointer-events-none fixed inset-x-0 bottom-24 z-50 flex flex-col items-center gap-2" aria-live="polite">
+<div class="pointer-events-none fixed inset-x-0 bottom-28 z-50 flex flex-col items-center gap-2" aria-live="polite">
   @for (toast of toasts.toasts(); track toast.id) {
     <div
       class="pointer-events-auto flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium shadow-[0_16px_24px_rgb(0_0_0/0.3)]"
@@ -24,3 +49,7 @@
     </div>
   }
 </div>
+
+<app-context-menu />
+<app-confirm-dialog />
+<app-shortcuts-dialog />

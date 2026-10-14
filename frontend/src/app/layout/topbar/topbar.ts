@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -5,8 +6,9 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { Icon } from '../../shared/icon';
+import { LayoutService } from '../layout.service';
 
-/** Top bar like the current Spotify desktop app: logo · home + search · account menu. */
+/** Top bar like the current Spotify desktop app: logo · back/forward · home + search · account menu. */
 @Component({
   selector: 'app-topbar',
   imports: [ReactiveFormsModule, RouterLink, RouterLinkActive, Icon],
@@ -16,6 +18,8 @@ import { Icon } from '../../shared/icon';
 })
 export class Topbar {
   protected readonly auth = inject(AuthService);
+  protected readonly layout = inject(LayoutService);
+  protected readonly location = inject(Location);
   private readonly router = inject(Router);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly searchInput = viewChild.required<ElementRef<HTMLInputElement>>('searchInput');
@@ -30,7 +34,12 @@ export class Topbar {
     this.query.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed(destroyRef))
       .subscribe((q) => {
-        this.router.navigate(['/search'], { queryParams: q.trim() ? { q: q.trim() } : {}, replaceUrl: true });
+        // merge keeps the selected result tab (?type=songs) while the user refines the query
+        this.router.navigate(['/search'], {
+          queryParams: { q: q.trim() || null },
+          queryParamsHandling: this.router.url.startsWith('/search') ? 'merge' : '',
+          replaceUrl: true,
+        });
       });
 
     // Keep the box in sync with the URL (back/forward, leaving the search page)

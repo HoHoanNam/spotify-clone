@@ -5,17 +5,20 @@ import { ArtistLinks } from '../../shared/artist-links';
 import { CoverImage } from '../../shared/cover-image';
 import { DurationPipe } from '../../shared/duration.pipe';
 import { Icon, IconName } from '../../shared/icon';
+import { LikeButton } from '../../shared/like-button';
+import { LayoutService } from '../layout.service';
 
-/** Bottom "Now playing" bar: track info · transport controls + progress · volume. */
+/** Bottom "Now playing" bar: track info + like · transport controls + progress · queue + volume. */
 @Component({
   selector: 'app-player-bar',
-  imports: [RouterLink, ArtistLinks, CoverImage, DurationPipe, Icon],
+  imports: [RouterLink, ArtistLinks, CoverImage, DurationPipe, Icon, LikeButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './player-bar.html',
   styleUrl: './player-bar.css',
 })
 export class PlayerBar {
   protected readonly player = inject(PlayerService);
+  protected readonly layout = inject(LayoutService);
 
   /** While the user drags the progress bar, show the drag position instead of the live time. */
   protected readonly dragTime = signal<number | null>(null);
